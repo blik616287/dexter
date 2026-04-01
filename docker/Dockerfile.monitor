@@ -1,0 +1,11 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY python/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY python/dexter_alert.py .
+COPY python/stock_stream.py .
+
+ENTRYPOINT ["python3", "dexter_alert.py"]

@@ -1,0 +1,9 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY python/alert_warehouse.py .
+
+EXPOSE 8080
+
+ENTRYPOINT ["python3", "alert_warehouse.py"]
