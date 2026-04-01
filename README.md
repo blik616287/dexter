@@ -55,8 +55,8 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph make up SYMBOLS="AAPL MSFT NVDA"
-        W[Warehouse Container<br/>:8080]
+    subgraph stack [Docker Compose Stack]
+        W[Warehouse Container<br/>port 8080]
         M1[Monitor AAPL]
         M2[Monitor MSFT]
         M3[Monitor NVDA]
@@ -66,7 +66,7 @@ graph LR
     M2 -->|POST /alerts| W
     M3 -->|POST /alerts| W
 
-    Q[make alerts / make stats] -->|GET| W
+    Q[make alerts<br/>make stats] -->|GET| W
 ```
 
 ## Quickstart
