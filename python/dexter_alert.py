@@ -283,17 +283,20 @@ class PartialBar:
 class BarAggregator:
     """Aggregates streaming trades into fixed-interval OHLCV bars for one symbol.
 
-    When a bar completes (a trade arrives in the next interval), the
-    ``on_bar_complete`` callback is invoked with the finished bar.
+    Fires two callbacks:
+        - ``on_bar_complete``: when a bar finishes (first tick of next interval)
+        - ``on_tick``: on every trade, with the current partial bar state
     """
 
     def __init__(
         self,
         interval_minutes: int = BAR_INTERVAL_MINUTES,
         on_bar_complete: callable = None,
+        on_tick: callable = None,
     ) -> None:
         self._interval = interval_minutes
         self._on_bar_complete = on_bar_complete
+        self._on_tick = on_tick
         self._current_start: datetime | None = None
         self._current_bar: PartialBar | None = None
 
@@ -322,6 +325,10 @@ class BarAggregator:
             self._current_bar = PartialBar()
             self._current_bar.update(price, volume)
             self._current_start = bar_start
+
+        # Fire on every tick with the live partial bar
+        if self._on_tick and self._current_bar.tick_count > 0:
+            self._on_tick(self._current_start, self._current_bar)
 
 
 # ---------------------------------------------------------------------------
@@ -379,8 +386,11 @@ class DexterEvaluator:
             self._symbol, len(candles), valid,
         )
 
-    def on_bar(self, bar_start: datetime, bar: PartialBar) -> DexterSignal | None:
-        """Called when a 15m bar completes. Appends, recomputes, evaluates."""
+    def on_bar(self, bar_start: datetime, bar: PartialBar) -> None:
+        """Called when a 15m bar completes. Appends to history and recomputes
+        indicators. Does NOT evaluate — evaluation happens on every tick via
+        :meth:`on_tick`.
+        """
         with self._lock:
             self._candles.append({
                 "time": bar_start,
@@ -395,13 +405,26 @@ class DexterEvaluator:
             })
             self._recompute_indicators()
 
-            # Cooldown
+    def on_tick(self, bar_start: datetime, partial: PartialBar) -> DexterSignal | None:
+        """Evaluate the 5-gate signal using live tick data.
+
+        Gates 1-3 (MA alignment, slope, ATR compression) use indicators
+        from the last completed bar. Gates 4-5 (breakout, RVOL) use the
+        live partial bar's close and volume.
+
+        Returns a :class:`DexterSignal` if triggered, else ``None``.
+        """
+        with self._lock:
+            if len(self._candles) < MIN_CANDLES:
+                return None
+
+            # Cooldown — one signal per bar interval
             if self._last_fire is not None:
                 elapsed = (bar_start - self._last_fire).total_seconds() / 60
                 if elapsed < BAR_INTERVAL_MINUTES * COOLDOWN_BARS:
                     return None
 
-            signal = self._evaluate(bar_start)
+            signal = self._evaluate_live(bar_start, partial)
             if signal is not None:
                 self._last_fire = bar_start
             return signal
@@ -427,15 +450,20 @@ class DexterEvaluator:
                 float(atr_14.iloc[i]) if atr_14 is not None and pd.notna(atr_14.iloc[i]) else None
             )
 
-    def _evaluate(self, bar_start: datetime) -> DexterSignal | None:
-        """Run the 5-gate Dexter evaluation."""
-        candles = self._candles
-        if len(candles) < MIN_CANDLES:
-            return None
+    def _evaluate_live(
+        self, bar_start: datetime, partial: PartialBar,
+    ) -> DexterSignal | None:
+        """Run the 5-gate evaluation against live tick data.
 
+        Gates 1-3 use indicators from the last completed bar in history.
+        Gates 4-5 use the live partial bar's close and volume.
+        """
+        candles = self._candles
+
+        # Last completed bar provides indicators
         latest = candles[-1]
 
-        # --- Gate 1: MA alignment ---
+        # --- Gate 1: MA alignment (from completed bars) ---
         sma_20 = latest.get("sma_20")
         sma_50 = latest.get("sma_50")
         if sma_20 is None or sma_50 is None:
@@ -448,7 +476,7 @@ class DexterEvaluator:
         else:
             return None
 
-        # --- Gate 2: Slope agreement ---
+        # --- Gate 2: Slope agreement (from completed bars) ---
         sma_20_series = [c["sma_20"] for c in candles if c.get("sma_20") is not None]
         sma_50_series = [c["sma_50"] for c in candles if c.get("sma_50") is not None]
         if len(sma_20_series) < 2 or len(sma_50_series) < 2:
@@ -464,21 +492,21 @@ class DexterEvaluator:
         if direction == "BEAR" and not (slope_20 < 0 and slope_50 < 0):
             return None
 
-        # --- Gate 3: ATR compression ---
+        # --- Gate 3: ATR compression (ATR from completed bars, close from live) ---
         atr_14 = latest.get("atr_14")
-        close = latest.get("close")
-        if atr_14 is None or close is None or close == 0:
+        close = partial.close
+        if atr_14 is None or close == 0:
             return None
 
         atr_ratio = atr_14 / close
         if atr_ratio > ATR_COMPRESSION_THRESHOLD:
             return None
 
-        # --- Gate 4: 10-bar breakout ---
-        if len(candles) < BREAKOUT_LOOKBACK + 1:
+        # --- Gate 4: 10-bar breakout (channel from completed bars, close from live) ---
+        if len(candles) < BREAKOUT_LOOKBACK:
             return None
 
-        channel_candles = candles[-(BREAKOUT_LOOKBACK + 1):-1]
+        channel_candles = candles[-BREAKOUT_LOOKBACK:]
         channel_highs = [c["high"] for c in channel_candles if c.get("high") is not None]
         channel_lows = [c["low"] for c in channel_candles if c.get("low") is not None]
         if not channel_highs or not channel_lows:
@@ -489,9 +517,9 @@ class DexterEvaluator:
         if direction == "BEAR" and not (close < min(channel_lows)):
             return None
 
-        # --- Gate 5: RVOL (time-of-day) ---
-        current_volume = latest.get("volume")
-        if current_volume is None or current_volume == 0:
+        # --- Gate 5: RVOL (live volume vs TOD baseline) ---
+        current_volume = partial.volume
+        if current_volume == 0:
             return None
 
         slot = bar_start.strftime("%H:%M")
@@ -566,6 +594,7 @@ class DexterAlertMonitor:
         self._aggregator = BarAggregator(
             interval_minutes=BAR_INTERVAL_MINUTES,
             on_bar_complete=self._on_bar_complete,
+            on_tick=self._on_tick,
         )
         self._ws: websocket.WebSocketApp | None = None
         self._refresh_timer: threading.Timer | None = None
@@ -744,14 +773,21 @@ class DexterAlertMonitor:
     # -- Callbacks --
 
     def _on_bar_complete(self, bar_start: datetime, bar: PartialBar) -> None:
-        """Called by the BarAggregator when a 15m bar completes."""
+        """Called when a 15m bar completes. Commits it to history for
+        indicator recalculation. Does not evaluate — that happens on_tick.
+        """
         logger.debug(
             "[%s] Bar %s O=%.2f H=%.2f L=%.2f C=%.2f V=%.0f",
             self.symbol, bar_start.strftime("%H:%M"),
             bar.open, bar.high, bar.low, bar.close, bar.volume,
         )
+        self._evaluator.on_bar(bar_start, bar)
 
-        signal = self._evaluator.on_bar(bar_start, bar)
+    def _on_tick(self, bar_start: datetime, partial: PartialBar) -> None:
+        """Called on every trade tick. Evaluates the 5-gate signal using
+        the live partial bar against historical context.
+        """
+        signal = self._evaluator.on_tick(bar_start, partial)
         if signal is not None:
             self._on_signal(signal)
             if self._webhook:

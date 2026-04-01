@@ -269,6 +269,22 @@ class TestBarAggregator:
         assert agg._bar_start(datetime(2026, 3, 31, 9, 45)) == datetime(2026, 3, 31, 9, 45)
         assert agg._bar_start(datetime(2026, 3, 31, 10, 14)) == datetime(2026, 3, 31, 10, 0)
 
+    def test_on_tick_fires_every_trade(self):
+        ticks = []
+
+        def on_tick(bar_start, bar):
+            ticks.append((bar_start, bar.close, bar.volume))
+
+        agg = BarAggregator(interval_minutes=15, on_tick=on_tick)
+        agg.ingest(100.0, 50.0, datetime(2026, 3, 31, 9, 30, 0))
+        agg.ingest(101.0, 30.0, datetime(2026, 3, 31, 9, 35, 0))
+        agg.ingest(102.0, 20.0, datetime(2026, 3, 31, 9, 40, 0))
+
+        assert len(ticks) == 3
+        assert ticks[0][1] == 100.0  # close after first tick
+        assert ticks[2][1] == 102.0  # close after third tick
+        assert ticks[2][2] == 100.0  # cumulative volume
+
 
 # ---------------------------------------------------------------------------
 # DexterEvaluator
@@ -283,7 +299,7 @@ class TestDexterEvaluator:
     def test_insufficient_candles_returns_none(self, evaluator):
         bar = PartialBar()
         bar.update(100.0, 1000.0)
-        result = evaluator.on_bar(datetime(2026, 3, 31, 9, 30), bar)
+        result = evaluator.on_tick(datetime(2026, 3, 31, 9, 30), bar)
         assert result is None
 
     def test_seed_populates_candles(self, evaluator):
@@ -301,7 +317,7 @@ class TestDexterEvaluator:
         assert last["atr_14"] is not None
 
     def test_cooldown_blocks_repeat_signal(self, evaluator):
-        """Seed data that triggers, then verify cooldown blocks next bar."""
+        """Seed data that triggers, then verify cooldown blocks next tick."""
         df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
         evaluator.seed(df)
 
@@ -310,9 +326,21 @@ class TestDexterEvaluator:
 
         bar = PartialBar()
         bar.update(200.0, 99999.0)
-        result = evaluator.on_bar(datetime(2026, 3, 31, 14, 30), bar)
+        result = evaluator.on_tick(datetime(2026, 3, 31, 14, 30), bar)
         # Should be blocked by cooldown (same timestamp)
         assert result is None
+
+    def test_on_bar_commits_to_history(self, evaluator):
+        """on_bar appends a completed bar to candle history."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+        initial_count = len(evaluator._candles)
+
+        bar = PartialBar()
+        bar.update(120.0, 5000.0)
+        evaluator.on_bar(datetime(2026, 4, 1, 10, 0), bar)
+
+        assert len(evaluator._candles) == initial_count + 1
 
 
 # ---------------------------------------------------------------------------
@@ -513,24 +541,29 @@ class TestDexterEvaluatorGates:
         evaluator.seed(df)
         bar = PartialBar()
         bar.update(120.0, 5000.0)
-        result = evaluator.on_bar(datetime(2026, 4, 1, 10, 0), bar)
+        result = evaluator.on_tick(datetime(2026, 4, 1, 10, 0), bar)
         assert result is None
 
     def test_gate3_high_atr_returns_none(self, seeded_evaluator):
         """Gate 3 fails when ATR ratio is too high (volatile stock)."""
-        # Inject a bar with huge price swing to blow up ATR
-        bar = PartialBar()
-        bar.update(200.0, 5000.0)
-        bar.update(100.0, 5000.0)  # Massive range
-        result = seeded_evaluator.on_bar(datetime(2026, 4, 1, 10, 0), bar)
+        # Inject a completed bar with huge range to blow up ATR
+        big_bar = PartialBar()
+        big_bar.update(200.0, 5000.0)
+        big_bar.update(100.0, 5000.0)
+        seeded_evaluator.on_bar(datetime(2026, 4, 1, 9, 45), big_bar)
+
+        # Now tick should fail gate 3
+        tick = PartialBar()
+        tick.update(150.0, 5000.0)
+        result = seeded_evaluator.on_tick(datetime(2026, 4, 1, 10, 0), tick)
         assert result is None
 
     def test_gate5_low_rvol_returns_none(self, seeded_evaluator):
         """Gate 5 fails when volume is too low relative to TOD baseline."""
         # With no TOD baseline data, RVOL will be None
-        bar = PartialBar()
-        bar.update(120.0, 1.0)  # Tiny volume
-        result = seeded_evaluator.on_bar(datetime(2026, 4, 1, 10, 0), bar)
+        tick = PartialBar()
+        tick.update(120.0, 1.0)  # Tiny volume
+        result = seeded_evaluator.on_tick(datetime(2026, 4, 1, 10, 0), tick)
         assert result is None
 
 
@@ -552,40 +585,49 @@ class TestDexterAlertMonitorResolveKey:
             DexterAlertMonitor._resolve_api_key("https://example.com/api", "")
 
 
-class TestDexterAlertMonitorBarCallback:
-    def test_bar_complete_posts_webhook_on_signal(self):
-        """When a signal fires, the webhook is called."""
+class TestDexterAlertMonitorCallbacks:
+    def test_on_tick_posts_webhook_on_signal(self):
+        """When a signal fires on a tick, the webhook is called."""
         signals = []
         webhook_posts = []
 
         m = DexterAlertMonitor(symbol="TEST", on_signal=lambda s: signals.append(s))
-        # Mock the webhook
         m._webhook = MagicMock()
         m._webhook.post = lambda sig, entry_exit: webhook_posts.append((sig, entry_exit))
 
-        # Mock evaluator to always return a signal
         mock_signal = _make_signal(symbol="TEST")
-        m._evaluator.on_bar = MagicMock(return_value=mock_signal)
+        m._evaluator.on_tick = MagicMock(return_value=mock_signal)
 
         bar = PartialBar()
         bar.update(100.0, 1000.0)
-        m._on_bar_complete(datetime(2026, 3, 31, 14, 30), bar)
+        m._on_tick(datetime(2026, 3, 31, 14, 30), bar)
 
         assert len(signals) == 1
         assert len(webhook_posts) == 1
         assert webhook_posts[0][1] == "entry"
 
-    def test_bar_complete_no_webhook_when_no_signal(self):
-        """When no signal fires, the webhook is not called."""
+    def test_on_tick_no_webhook_when_no_signal(self):
+        """When no signal fires on tick, the webhook is not called."""
         m = DexterAlertMonitor(symbol="TEST")
         m._webhook = MagicMock()
-        m._evaluator.on_bar = MagicMock(return_value=None)
+        m._evaluator.on_tick = MagicMock(return_value=None)
+
+        bar = PartialBar()
+        bar.update(100.0, 1000.0)
+        m._on_tick(datetime(2026, 3, 31, 14, 30), bar)
+
+        m._webhook.post.assert_not_called()
+
+    def test_bar_complete_commits_history(self):
+        """on_bar_complete commits bar to evaluator history."""
+        m = DexterAlertMonitor(symbol="TEST")
+        m._evaluator.on_bar = MagicMock()
 
         bar = PartialBar()
         bar.update(100.0, 1000.0)
         m._on_bar_complete(datetime(2026, 3, 31, 14, 30), bar)
 
-        m._webhook.post.assert_not_called()
+        m._evaluator.on_bar.assert_called_once()
 
 
 def _make_trending_df(n: int = 60, start_price: float = 100.0, trend: float = 0.1) -> pd.DataFrame:
