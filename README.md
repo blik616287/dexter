@@ -1,6 +1,6 @@
 # DEXTER Real-Time Alert Monitor
 
-Real-time implementation of the DEXTER (Shoulder Tap 2) compressed-volatility breakout strategy. Streams live market data, evaluates a 5-gate signal on every completed 15-minute bar, and posts alerts to a configurable webhook endpoint.
+Real-time implementation of the DEXTER compressed-volatility breakout strategy. Streams live market data, evaluates a 5-gate signal on every completed 15-minute bar, and posts alerts to a configurable webhook endpoint.
 
 ## Strategy
 
