@@ -153,7 +153,7 @@ When a signal fires, the monitor POSTs this JSON to the webhook:
 ## Project Structure
 
 ```
-dipsea/
+dexter/
 ├── python/
 │   ├── dexter_alert.py          # DEXTER evaluator + monitor
 │   ├── stock_stream.py          # Historical bars + trade streaming
