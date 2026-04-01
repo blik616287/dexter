@@ -19,6 +19,7 @@ from dexter_alert import (
     DexterSignal,
     PartialBar,
     TODVolumeBaseline,
+    _BreakoutLatch,
     calc_rvol_tod,
     parse_args,
     sma_slope_pct,
@@ -272,7 +273,7 @@ class TestBarAggregator:
     def test_on_tick_fires_every_trade(self):
         ticks = []
 
-        def on_tick(bar_start, bar):
+        def on_tick(bar_start, bar, tick_time):
             ticks.append((bar_start, bar.close, bar.volume))
 
         agg = BarAggregator(interval_minutes=15, on_tick=on_tick)
@@ -299,8 +300,9 @@ class TestDexterEvaluator:
     def test_insufficient_candles_returns_none(self, evaluator):
         bar = PartialBar()
         bar.update(100.0, 1000.0)
-        result = evaluator.on_tick(datetime(2026, 3, 31, 9, 30), bar)
-        assert result is None
+        signal, entry_ts = evaluator.on_tick(datetime(2026, 3, 31, 9, 30), bar)
+        assert signal is None
+        assert entry_ts is None
 
     def test_seed_populates_candles(self, evaluator):
         df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
@@ -316,19 +318,27 @@ class TestDexterEvaluator:
         assert last["sma_50"] is not None
         assert last["atr_14"] is not None
 
-    def test_cooldown_blocks_repeat_signal(self, evaluator):
-        """Seed data that triggers, then verify cooldown blocks next tick."""
+    def test_latch_blocks_repeat_signal(self, evaluator):
+        """When latched, subsequent ticks in the same bar are suppressed."""
         df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
         evaluator.seed(df)
 
-        # Force a fire timestamp
-        evaluator._last_fire = datetime(2026, 3, 31, 14, 30)
+        entry_time = datetime(2026, 3, 31, 14, 30, 5)
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL",
+            channel_high=105.0,
+            channel_low=100.0,
+            entry_timestamp=entry_time,
+        )
 
         bar = PartialBar()
-        bar.update(200.0, 99999.0)
-        result = evaluator.on_tick(datetime(2026, 3, 31, 14, 30), bar)
-        # Should be blocked by cooldown (same timestamp)
-        assert result is None
+        bar.update(110.0, 99999.0)  # Still above channel — latched
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 31),
+        )
+        assert signal is None
+        assert entry_ts is None
 
     def test_on_bar_commits_to_history(self, evaluator):
         """on_bar appends a completed bar to candle history."""
@@ -541,30 +551,189 @@ class TestDexterEvaluatorGates:
         evaluator.seed(df)
         bar = PartialBar()
         bar.update(120.0, 5000.0)
-        result = evaluator.on_tick(datetime(2026, 4, 1, 10, 0), bar)
-        assert result is None
+        signal, _ = evaluator.on_tick(
+            datetime(2026, 4, 1, 10, 0), bar, datetime(2026, 4, 1, 10, 0, 1),
+        )
+        assert signal is None
 
     def test_gate3_high_atr_returns_none(self, seeded_evaluator):
         """Gate 3 fails when ATR ratio is too high (volatile stock)."""
-        # Inject a completed bar with huge range to blow up ATR
         big_bar = PartialBar()
         big_bar.update(200.0, 5000.0)
         big_bar.update(100.0, 5000.0)
         seeded_evaluator.on_bar(datetime(2026, 4, 1, 9, 45), big_bar)
 
-        # Now tick should fail gate 3
         tick = PartialBar()
         tick.update(150.0, 5000.0)
-        result = seeded_evaluator.on_tick(datetime(2026, 4, 1, 10, 0), tick)
-        assert result is None
+        signal, _ = seeded_evaluator.on_tick(
+            datetime(2026, 4, 1, 10, 0), tick, datetime(2026, 4, 1, 10, 0, 1),
+        )
+        assert signal is None
 
     def test_gate5_low_rvol_returns_none(self, seeded_evaluator):
         """Gate 5 fails when volume is too low relative to TOD baseline."""
-        # With no TOD baseline data, RVOL will be None
         tick = PartialBar()
-        tick.update(120.0, 1.0)  # Tiny volume
-        result = seeded_evaluator.on_tick(datetime(2026, 4, 1, 10, 0), tick)
-        assert result is None
+        tick.update(120.0, 1.0)
+        signal, _ = seeded_evaluator.on_tick(
+            datetime(2026, 4, 1, 10, 0), tick, datetime(2026, 4, 1, 10, 0, 1),
+        )
+        assert signal is None
+
+
+# ---------------------------------------------------------------------------
+# _BreakoutLatch
+# ---------------------------------------------------------------------------
+
+class TestBreakoutLatch:
+    def test_bull_not_invalidated_above_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(110.0) is False
+
+    def test_bull_invalidated_at_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(105.0) is True
+
+    def test_bull_invalidated_below_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(103.0) is True
+
+    def test_bear_not_invalidated_below_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BEAR", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(98.0) is False
+
+    def test_bear_invalidated_at_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BEAR", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(100.0) is True
+
+    def test_bear_invalidated_above_channel(self):
+        latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BEAR", channel_high=105.0, channel_low=100.0,
+        )
+        assert latch.is_invalidated(102.0) is True
+
+
+class TestLatchInvalidation:
+    """Test the latch → invalidate → re-trigger lifecycle."""
+
+    @pytest.fixture()
+    def evaluator(self):
+        tod = TODVolumeBaseline()
+        return DexterEvaluator("TEST", tod)
+
+    def test_invalidation_returns_entry_timestamp(self, evaluator):
+        """When latched and price falls back, returns the entry timestamp."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+
+        entry_time = datetime(2026, 3, 31, 14, 30, 15)
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+            entry_timestamp=entry_time,
+        )
+
+        bar = PartialBar()
+        bar.update(103.0, 1000.0)
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 32),
+        )
+        assert signal is None
+        assert entry_ts == entry_time
+        assert evaluator._latch is None
+
+    def test_new_bar_can_trigger_despite_prior_latch(self, evaluator):
+        """Latch from bar1 does not block a new signal on bar2."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 15),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+            entry_timestamp=datetime(2026, 3, 31, 14, 16),
+        )
+
+        bar = PartialBar()
+        bar.update(110.0, 1000.0)
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 30, 5),
+        )
+        assert entry_ts is None  # Not invalidated
+
+    def test_latch_invalidates_in_next_bar(self, evaluator):
+        """Latch from previous bar can be invalidated in the next bar."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+
+        entry_time = datetime(2026, 3, 31, 14, 16)
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 15),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+            entry_timestamp=entry_time,
+        )
+
+        bar = PartialBar()
+        bar.update(103.0, 1000.0)
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 30, 5),
+        )
+        assert entry_ts == entry_time
+        assert evaluator._latch is None
+
+    def test_same_bar_latch_blocks(self, evaluator):
+        """Latch from the same bar suppresses re-trigger."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 30),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+            entry_timestamp=datetime(2026, 3, 31, 14, 30, 5),
+        )
+
+        bar = PartialBar()
+        bar.update(110.0, 99999.0)
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 31),
+        )
+        assert signal is None
+        assert entry_ts is None
+
+    def test_latch_expires_after_ttl(self, evaluator):
+        """Latch silently releases after TTL without invalidation."""
+        df = _make_trending_df(n=60, start_price=100.0, trend=0.1)
+        evaluator.seed(df)
+
+        entry_time = datetime(2026, 3, 31, 14, 15, 0)
+        evaluator._latch = _BreakoutLatch(
+            bar_start=datetime(2026, 3, 31, 14, 15),
+            direction="BULL", channel_high=105.0, channel_low=100.0,
+            entry_timestamp=entry_time,
+        )
+
+        bar = PartialBar()
+        bar.update(110.0, 1000.0)  # Still above channel
+        tick_time = datetime(2026, 3, 31, 14, 26)  # 11 min later > 10 min TTL
+        signal, entry_ts = evaluator.on_tick(
+            datetime(2026, 3, 31, 14, 15), bar, tick_time,
+        )
+        # Expired silently — no invalidation, latch gone
+        assert entry_ts is None
 
 
 class TestDexterAlertMonitorResolveKey:
@@ -596,11 +765,12 @@ class TestDexterAlertMonitorCallbacks:
         m._webhook.post = lambda sig, entry_exit: webhook_posts.append((sig, entry_exit))
 
         mock_signal = _make_signal(symbol="TEST")
-        m._evaluator.on_tick = MagicMock(return_value=mock_signal)
+        m._evaluator.on_tick = MagicMock(return_value=(mock_signal, None))
 
         bar = PartialBar()
         bar.update(100.0, 1000.0)
-        m._on_tick(datetime(2026, 3, 31, 14, 30), bar)
+        tick_time = datetime(2026, 3, 31, 14, 30, 5)
+        m._on_tick(datetime(2026, 3, 31, 14, 30), bar, tick_time)
 
         assert len(signals) == 1
         assert len(webhook_posts) == 1
@@ -610,13 +780,32 @@ class TestDexterAlertMonitorCallbacks:
         """When no signal fires on tick, the webhook is not called."""
         m = DexterAlertMonitor(symbol="TEST")
         m._webhook = MagicMock()
-        m._evaluator.on_tick = MagicMock(return_value=None)
+        m._evaluator.on_tick = MagicMock(return_value=(None, None))
 
         bar = PartialBar()
         bar.update(100.0, 1000.0)
-        m._on_tick(datetime(2026, 3, 31, 14, 30), bar)
+        m._on_tick(datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 30, 5))
 
         m._webhook.post.assert_not_called()
+
+    def test_on_tick_posts_exit_on_invalidation(self):
+        """When breakout is invalidated, posts an exit alert with entry_timestamp."""
+        webhook_posts = []
+        m = DexterAlertMonitor(symbol="TEST")
+        m._webhook = MagicMock()
+        m._webhook.post = lambda sig, entry_exit, entry_timestamp=None: webhook_posts.append(
+            (entry_exit, entry_timestamp)
+        )
+        entry_time = datetime(2026, 3, 31, 14, 20, 15)
+        m._evaluator.on_tick = MagicMock(return_value=(None, entry_time))
+
+        bar = PartialBar()
+        bar.update(100.0, 1000.0)
+        m._on_tick(datetime(2026, 3, 31, 14, 30), bar, datetime(2026, 3, 31, 14, 32))
+
+        assert len(webhook_posts) == 1
+        assert webhook_posts[0][0] == "exit"
+        assert webhook_posts[0][1] == entry_time
 
     def test_bar_complete_commits_history(self):
         """on_bar_complete commits bar to evaluator history."""

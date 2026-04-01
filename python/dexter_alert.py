@@ -67,6 +67,7 @@ MA_STRONG_SLOPE_PCT: float = 0.1
 MIN_CANDLES: int = 12
 BAR_INTERVAL_MINUTES: int = 15
 COOLDOWN_BARS: int = 1
+LATCH_TTL_MINUTES: int = 10
 HISTORY_PERIOD: str = "60d"
 MARKET_OPEN: dt_time = dt_time(9, 30)
 MARKET_CLOSE: dt_time = dt_time(16, 0)
@@ -113,12 +114,19 @@ class AlertWebhookClient:
         self._url = url
         self._api_key = api_key
 
-    def post(self, signal: DexterSignal, entry_exit: str = "entry") -> bool:
+    def post(
+        self,
+        signal: DexterSignal,
+        entry_exit: str = "entry",
+        entry_timestamp: datetime | None = None,
+    ) -> bool:
         """Post an alert payload. Returns True on success.
 
         Args:
             signal: The Dexter signal that fired.
             entry_exit: ``"entry"`` or ``"exit"``.
+            entry_timestamp: For exit alerts, the timestamp of the
+                original entry this invalidation corresponds to.
         """
         payload = {
             "timestamp": signal.timestamp.isoformat(),
@@ -129,6 +137,8 @@ class AlertWebhookClient:
             "side": signal.action.lower(),
             "bar_size": f"{BAR_INTERVAL_MINUTES}m",
         }
+        if entry_exit == "exit" and entry_timestamp is not None:
+            payload["entry_timestamp"] = entry_timestamp.isoformat()
 
         body = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
@@ -326,9 +336,43 @@ class BarAggregator:
             self._current_bar.update(price, volume)
             self._current_start = bar_start
 
-        # Fire on every tick with the live partial bar
+        # Fire on every tick with the live partial bar and actual tick time
         if self._on_tick and self._current_bar.tick_count > 0:
-            self._on_tick(self._current_start, self._current_bar)
+            self._on_tick(self._current_start, self._current_bar, ts)
+
+
+# ---------------------------------------------------------------------------
+# Breakout latch — tracks active breakout for invalidation
+# ---------------------------------------------------------------------------
+
+@dataclass
+class _BreakoutLatch:
+    """Tracks an active breakout within a single bar interval.
+
+    Engaged when a signal fires. While engaged, the evaluator checks
+    whether price has fallen back inside the channel (invalidation).
+    On invalidation the latch releases, allowing re-trigger.
+    Automatically resets when a new bar starts.
+    """
+
+    bar_start: datetime
+    direction: str
+    channel_high: float
+    channel_low: float
+    entry_timestamp: datetime | None = None
+
+    def is_invalidated(self, close: float) -> bool:
+        """Check if the breakout has failed (price back inside channel)."""
+        if self.direction == "BULL":
+            return close <= self.channel_high
+        return close >= self.channel_low
+
+    def is_expired(self, now: datetime, ttl_minutes: int = LATCH_TTL_MINUTES) -> bool:
+        """Check if the latch has exceeded its time-to-live."""
+        if self.entry_timestamp is None:
+            return False
+        elapsed = (now - self.entry_timestamp).total_seconds() / 60
+        return elapsed >= ttl_minutes
 
 
 # ---------------------------------------------------------------------------
@@ -345,8 +389,9 @@ class DexterEvaluator:
         self._symbol = symbol
         self._tod = tod_baseline
         self._candles: list[dict] = []
-        self._last_fire: datetime | None = None
         self._lock = threading.Lock()
+        # Latch state — tracks active breakout within the current bar
+        self._latch: _BreakoutLatch | None = None
 
     def seed(self, df: pd.DataFrame) -> None:
         """Seed candle history from a yfinance DataFrame with indicators.
@@ -388,8 +433,9 @@ class DexterEvaluator:
 
     def on_bar(self, bar_start: datetime, bar: PartialBar) -> None:
         """Called when a 15m bar completes. Appends to history and recomputes
-        indicators. Does NOT evaluate — evaluation happens on every tick via
-        :meth:`on_tick`.
+        indicators. The latch is NOT reset here — it persists across bar
+        boundaries so a trigger at the tail end of a bar isn't immediately
+        re-opened on the next bar. Only invalidation releases the latch.
         """
         with self._lock:
             self._candles.append({
@@ -405,29 +451,53 @@ class DexterEvaluator:
             })
             self._recompute_indicators()
 
-    def on_tick(self, bar_start: datetime, partial: PartialBar) -> DexterSignal | None:
+    def on_tick(
+        self, bar_start: datetime, partial: PartialBar, tick_time: datetime | None = None,
+    ) -> tuple[DexterSignal | None, datetime | None]:
         """Evaluate the 5-gate signal using live tick data.
 
-        Gates 1-3 (MA alignment, slope, ATR compression) use indicators
-        from the last completed bar. Gates 4-5 (breakout, RVOL) use the
-        live partial bar's close and volume.
+        Args:
+            bar_start: Start time of the current bar interval.
+            partial: The in-progress bar built from ticks so far.
+            tick_time: Actual timestamp of the trade tick.
 
-        Returns a :class:`DexterSignal` if triggered, else ``None``.
+        Returns:
+            ``(signal, None)`` when a signal fires.
+            ``(None, entry_timestamp)`` when a prior breakout is invalidated
+            (the entry_timestamp links back to the original trigger).
+            ``(None, None)`` when suppressed or no signal.
         """
+        ts = tick_time or datetime.now()
+
         with self._lock:
             if len(self._candles) < MIN_CANDLES:
-                return None
+                return None, None
 
-            # Cooldown — one signal per bar interval
-            if self._last_fire is not None:
-                elapsed = (bar_start - self._last_fire).total_seconds() / 60
-                if elapsed < BAR_INTERVAL_MINUTES * COOLDOWN_BARS:
-                    return None
+            # Check active latch: invalidation, expiry, or same-bar suppression
+            if self._latch is not None:
+                if self._latch.is_invalidated(partial.close):
+                    entry_timestamp = self._latch.entry_timestamp
+                    self._latch = None
+                    return None, entry_timestamp
+                if self._latch.is_expired(ts):
+                    # TTL exceeded without invalidation — silently release
+                    self._latch = None
+                elif self._latch.bar_start == bar_start:
+                    # Same bar as the latch — suppress re-trigger
+                    return None, None
+                # Different bar + not expired — latch stays for invalidation
+                # tracking but does NOT block new signals
 
             signal = self._evaluate_live(bar_start, partial)
             if signal is not None:
-                self._last_fire = bar_start
-            return signal
+                self._latch = _BreakoutLatch(
+                    bar_start=bar_start,
+                    direction=signal.direction,
+                    channel_high=signal.channel_high,
+                    channel_low=signal.channel_low,
+                    entry_timestamp=ts,
+                )
+            return signal, None
 
     def _recompute_indicators(self) -> None:
         """Recompute SMA(20), SMA(50), ATR(14) from candle history."""
@@ -783,11 +853,41 @@ class DexterAlertMonitor:
         )
         self._evaluator.on_bar(bar_start, bar)
 
-    def _on_tick(self, bar_start: datetime, partial: PartialBar) -> None:
+    def _on_tick(
+        self, bar_start: datetime, partial: PartialBar, tick_time: datetime,
+    ) -> None:
         """Called on every trade tick. Evaluates the 5-gate signal using
         the live partial bar against historical context.
+
+        Handles three cases:
+            1. Signal fires → alert entry
+            2. Breakout invalidated → alert exit with entry_timestamp
+            3. No signal / latched → do nothing
         """
-        signal = self._evaluator.on_tick(bar_start, partial)
+        signal, entry_timestamp = self._evaluator.on_tick(bar_start, partial, tick_time)
+
+        if entry_timestamp is not None:
+            logger.info(
+                "[%s] Breakout invalidated at $%.2f (entry was %s)",
+                self.symbol, partial.close, entry_timestamp.isoformat(),
+            )
+            if self._webhook:
+                inv_signal = DexterSignal(
+                    symbol=self.symbol,
+                    direction="",
+                    action="",
+                    strength=0,
+                    close=partial.close,
+                    sma_20=0, sma_50=0, atr_ratio=0, rvol=0,
+                    slope_20=0, slope_50=0, atr_14=0,
+                    channel_high=0, channel_low=0,
+                    timestamp=tick_time,
+                )
+                self._webhook.post(
+                    inv_signal, entry_exit="exit", entry_timestamp=entry_timestamp,
+                )
+            return
+
         if signal is not None:
             self._on_signal(signal)
             if self._webhook:
