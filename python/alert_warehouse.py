@@ -63,15 +63,18 @@ class AlertStore:
         with self._lock, self._connect() as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
-                    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp  TEXT NOT NULL,
-                    symbol     TEXT NOT NULL,
-                    price      REAL NOT NULL,
-                    alert_type TEXT NOT NULL,
-                    entry_exit TEXT NOT NULL,
-                    side       TEXT NOT NULL,
-                    bar_size   TEXT NOT NULL,
-                    received   TEXT NOT NULL DEFAULT (datetime('now'))
+                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp       TEXT NOT NULL,
+                    symbol          TEXT NOT NULL,
+                    price           REAL NOT NULL,
+                    alert_type      TEXT NOT NULL,
+                    entry_exit      TEXT NOT NULL,
+                    side            TEXT NOT NULL,
+                    bar_size        TEXT NOT NULL,
+                    strength        REAL,
+                    entry_timestamp TEXT,
+                    source          TEXT DEFAULT 'unknown',
+                    received        TEXT NOT NULL DEFAULT (datetime('now'))
                 )
             """)
             conn.execute("""
@@ -84,8 +87,9 @@ class AlertStore:
         with self._lock, self._connect() as conn:
             cur = conn.execute(
                 """INSERT INTO alerts
-                   (timestamp, symbol, price, alert_type, entry_exit, side, bar_size)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                   (timestamp, symbol, price, alert_type, entry_exit, side,
+                    bar_size, strength, entry_timestamp, source)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     alert["timestamp"],
                     alert["symbol"],
@@ -94,6 +98,9 @@ class AlertStore:
                     alert["entry_exit"],
                     alert["side"],
                     alert["bar_size"],
+                    alert.get("strength"),
+                    alert.get("entry_timestamp"),
+                    alert.get("source", "unknown"),
                 ),
             )
             return cur.lastrowid

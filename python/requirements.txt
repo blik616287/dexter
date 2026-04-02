@@ -1,4 +1,0 @@
-yfinance==1.2.0
-pandas==3.0.2
-pandas_ta==0.4.71b0
-websocket-client==1.8.0

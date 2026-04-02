@@ -1,160 +1,122 @@
-# Dexter Alert Monitor
+# Dipsea — DEXTER Alert Monitor
 #
 # Usage:
-#   make up SYMBOLS="AAPL MSFT NVDA"       # start local warehouse + monitors
-#   make up SYMBOLS="AAPL MSFT" WEBHOOK_URL="https://alerts-grantsea.pythonanywhere.com/api/alert" WEBHOOK_API_KEY="..."
-#                                           # monitors post to external endpoint (no local warehouse)
-#   make down                               # tear everything down
-#   make test                               # run tests with coverage
-#   make lint                               # lint all python code
-#   make clean                              # remove build artifacts
+#   make warehouse                          # start local alert warehouse
+#   make live                               # deploy LEAN live on QC cloud
+#   make local                              # run LEAN live locally via Docker
+#   make backtest                           # run cloud backtest
+#   make alerts                             # query stored alerts
+#   make stop                               # stop cloud deployment
+#   make down                               # stop warehouse
 
-SYMBOLS ?= AAPL MSFT
-WEBHOOK_URL ?=
-WEBHOOK_API_KEY ?=
-COMPOSE := docker compose -f docker/docker-compose.yml -f docker/docker-compose.override.yml
-OVERRIDE_FILE := docker/docker-compose.override.yml
+COMPOSE := docker compose -f docker/docker-compose.yml
+WAREHOUSE_URL := http://localhost:8080
 
-# If WEBHOOK_URL is set, post to external endpoint (no local warehouse).
-# Otherwise, start the local warehouse and post there.
-ifdef WEBHOOK_URL
-  _ALERT_ENDPOINT := $(WEBHOOK_URL)
-  _USE_LOCAL_WAREHOUSE := false
-  _PROFILES :=
-  WAREHOUSE_QUERY_URL := $(WEBHOOK_URL)
-else
-  _ALERT_ENDPOINT := http://warehouse:8080/alerts
-  _USE_LOCAL_WAREHOUSE := true
-  _PROFILES := --profile local
-  WAREHOUSE_QUERY_URL := http://localhost:8080
-endif
+# QuantConnect LEAN
+LEAN_PROJECT := ShoulderTaps
+LEAN_DIR := lean
+LEAN_NODE ?= L-MICRO node da88255a
 
-.PHONY: up down status logs alerts stats add remove restart nuke build help test lint clean
+.PHONY: help warehouse down nuke \
+        live local backtest push stop liquidate status logs \
+        alerts stats latest health \
+        test lint lint-fix clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 # ---------------------------------------------------------------------------
-# Generate the override file with monitor services for each symbol
+# Warehouse
 # ---------------------------------------------------------------------------
 
-define generate_override
-	@echo "services:" > $(OVERRIDE_FILE)
-	@for sym in $(1); do \
-		lower=$$(echo $$sym | tr '[:upper:]' '[:lower:]'); \
-		echo "  monitor-$$lower:" >> $(OVERRIDE_FILE); \
-		echo "    build:" >> $(OVERRIDE_FILE); \
-		echo "      context: .." >> $(OVERRIDE_FILE); \
-		echo "      dockerfile: docker/Dockerfile.monitor" >> $(OVERRIDE_FILE); \
-		echo "    command: [\"$$sym\", \"--webhook-url\", \"$(2)\"]" >> $(OVERRIDE_FILE); \
-		if [ -n "$(4)" ]; then \
-			echo "    environment:" >> $(OVERRIDE_FILE); \
-			echo "      - DEXTER_WEBHOOK_API_KEY=$(4)" >> $(OVERRIDE_FILE); \
-		fi; \
-		if [ "$(3)" = "true" ]; then \
-			echo "    depends_on:" >> $(OVERRIDE_FILE); \
-			echo "      warehouse:" >> $(OVERRIDE_FILE); \
-			echo "        condition: service_healthy" >> $(OVERRIDE_FILE); \
-		fi; \
-		echo "    restart: unless-stopped" >> $(OVERRIDE_FILE); \
-		echo "" >> $(OVERRIDE_FILE); \
-	done
-endef
-
-# ---------------------------------------------------------------------------
-# Core targets
-# ---------------------------------------------------------------------------
-
-build: ## Build images
-	$(call generate_override,$(SYMBOLS),$(_ALERT_ENDPOINT),$(_USE_LOCAL_WAREHOUSE),$(WEBHOOK_API_KEY))
-	$(COMPOSE) $(_PROFILES) build
-
-up: ## Start monitors (SYMBOLS="AAPL MSFT" WEBHOOK_URL="https://...")
-	$(call generate_override,$(SYMBOLS),$(_ALERT_ENDPOINT),$(_USE_LOCAL_WAREHOUSE),$(WEBHOOK_API_KEY))
+warehouse: ## Start local alert warehouse
+	$(COMPOSE) up -d --build
 	@echo ""
-ifeq ($(_USE_LOCAL_WAREHOUSE),true)
-	@echo "Mode:       local warehouse"
-	@echo "Endpoint:   $(_ALERT_ENDPOINT)"
-else
-	@echo "Mode:       external webhook"
-	@echo "Endpoint:   $(_ALERT_ENDPOINT)"
-endif
-	@echo "Monitors:   $(SYMBOLS)"
-	@echo ""
-	$(COMPOSE) $(_PROFILES) up -d --build
-	@echo ""
-ifeq ($(_USE_LOCAL_WAREHOUSE),true)
+	@echo "Warehouse:  $(WAREHOUSE_URL)"
 	@echo "Query:      make alerts | make stats"
-endif
-	@echo "Logs:       make logs"
 
-down: ## Stop and remove all containers
-	$(COMPOSE) --profile local down
-	@rm -f $(OVERRIDE_FILE)
+down: ## Stop warehouse
+	$(COMPOSE) down
 
-nuke: ## Tear down + delete stored alert data
-	$(COMPOSE) --profile local down -v
-	@rm -f $(OVERRIDE_FILE)
+nuke: ## Stop warehouse + delete stored data
+	$(COMPOSE) down -v
 
 # ---------------------------------------------------------------------------
-# Manage individual monitors
+# LEAN — Cloud
 # ---------------------------------------------------------------------------
 
-add: ## Add monitors to running stack (SYMBOLS="GOOGL META")
-	$(call generate_override,$(SYMBOLS),$(_ALERT_ENDPOINT),$(_USE_LOCAL_WAREHOUSE),$(WEBHOOK_API_KEY))
-	$(COMPOSE) $(_PROFILES) up -d --build $(foreach s,$(SYMBOLS),monitor-$(shell echo $(s) | tr '[:upper:]' '[:lower:]'))
+push: ## Push LEAN project to QuantConnect cloud
+	cd $(LEAN_DIR) && lean cloud push --project $(LEAN_PROJECT)
 
-remove: ## Remove specific monitors (SYMBOLS="META")
-	@for sym in $(SYMBOLS); do \
-		lower=$$(echo $$sym | tr '[:upper:]' '[:lower:]'); \
-		$(COMPOSE) --profile local rm -fs monitor-$$lower; \
-	done
+backtest: ## Run a cloud backtest
+	cd $(LEAN_DIR) && lean cloud backtest $(LEAN_PROJECT) \
+		--name "backtest-$$(date +%Y%m%d-%H%M%S)" --push
 
-restart: ## Restart specific monitors (SYMBOLS="AAPL")
-	@for sym in $(SYMBOLS); do \
-		lower=$$(echo $$sym | tr '[:upper:]' '[:lower:]'); \
-		$(COMPOSE) --profile local restart monitor-$$lower; \
-	done
+live: ## Deploy live paper trading on QC cloud
+	cd $(LEAN_DIR) && lean cloud live deploy $(LEAN_PROJECT) \
+		--brokerage "paper trading" \
+		--data-provider-live "quantconnect" \
+		--node "$(LEAN_NODE)" \
+		--auto-restart true \
+		--notify-order-events false \
+		--notify-insights false \
+		--push
+
+stop: ## Stop cloud live trading (keep positions)
+	cd $(LEAN_DIR) && lean cloud live stop $(LEAN_PROJECT)
+
+liquidate: ## Stop cloud live + liquidate all positions
+	cd $(LEAN_DIR) && lean cloud live liquidate $(LEAN_PROJECT)
+
+# ---------------------------------------------------------------------------
+# LEAN — Local
+# ---------------------------------------------------------------------------
+
+local: ## Run LEAN live locally via Docker
+	cd $(LEAN_DIR) && lean live $(LEAN_PROJECT) \
+		--brokerage "paper trading" \
+		--data-provider-live "quantconnect"
+
+local-backtest: ## Run LEAN backtest locally via Docker
+	cd $(LEAN_DIR) && lean backtest $(LEAN_PROJECT)
 
 # ---------------------------------------------------------------------------
 # Observability
 # ---------------------------------------------------------------------------
 
-status: ## Show running containers
-	$(COMPOSE) --profile local ps
+status: ## Show cloud live deployment status
+	@echo "Live: https://www.quantconnect.com/project/28278775/live"
+	cd $(LEAN_DIR) && lean cloud status $(LEAN_PROJECT) 2>/dev/null || true
 
-logs: ## Tail all container logs
-	$(COMPOSE) --profile local logs -f --tail=50
-
-logs-%: ## Tail logs for a specific monitor (e.g. make logs-aapl)
-	$(COMPOSE) --profile local logs -f --tail=50 monitor-$*
+logs: ## Show recent live algorithm logs
+	@python3 python/qc_logs.py
 
 # ---------------------------------------------------------------------------
 # Query warehouse
 # ---------------------------------------------------------------------------
 
 alerts: ## List all stored alerts
-	@curl -s $(WAREHOUSE_QUERY_URL)/alerts | python3 -m json.tool
+	@curl -s $(WAREHOUSE_URL)/alerts | python3 -m json.tool
 
 alerts-%: ## List alerts for a symbol (e.g. make alerts-aapl)
-	@curl -s "$(WAREHOUSE_QUERY_URL)/alerts?symbol=$(shell echo $* | tr '[:lower:]' '[:upper:]')" | python3 -m json.tool
+	@curl -s "$(WAREHOUSE_URL)/alerts?symbol=$(shell echo $* | tr '[:lower:]' '[:upper:]')" | python3 -m json.tool
 
 stats: ## Show per-symbol aggregate stats
-	@curl -s $(WAREHOUSE_QUERY_URL)/alerts/stats | python3 -m json.tool
+	@curl -s $(WAREHOUSE_URL)/alerts/stats | python3 -m json.tool
 
 latest: ## Most recent alert per symbol
-	@curl -s $(WAREHOUSE_QUERY_URL)/alerts/latest | python3 -m json.tool
+	@curl -s $(WAREHOUSE_URL)/alerts/latest | python3 -m json.tool
 
 health: ## Warehouse health check
-	@curl -s $(WAREHOUSE_QUERY_URL)/health | python3 -m json.tool
+	@curl -s $(WAREHOUSE_URL)/health | python3 -m json.tool
 
 # ---------------------------------------------------------------------------
 # Development
 # ---------------------------------------------------------------------------
 
-test: ## Run tests with coverage
-	python3 -m pytest tests/ -v --cov=python --cov-report=term-missing
+test: ## Run tests
+	python3 -m pytest tests/ -v --tb=short
 
 lint: ## Lint all Python code
 	ruff check python/ tests/
@@ -167,8 +129,5 @@ clean: ## Remove build artifacts
 	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name .ruff_cache -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name '*.pyc' -delete 2>/dev/null || true
-	find . -type f -name '*.pyo' -delete 2>/dev/null || true
 	find . -type f -name '.coverage' -delete 2>/dev/null || true
-	rm -rf htmlcov/ .eggs/ *.egg-info/
-	rm -f $(OVERRIDE_FILE)
 	@echo "Clean."

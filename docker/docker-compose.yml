@@ -9,8 +9,6 @@ services:
       - warehouse-data:/app/data
     command: ["--port", "8080", "--db", "/app/data/alerts.db"]
     restart: unless-stopped
-    profiles:
-      - local
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 10s

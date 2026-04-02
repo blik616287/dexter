@@ -1,0 +1,75 @@
+DEXTER RESEARCH BRIEF
+=====================
+
+Dexter is our strongest card in terms of fire rate and reproducibility. It's a
+compressed-volatility breakout signal -- it identifies stocks in a clear trend
+(moving averages aligned and sloping together), waits for a period of low
+volatility consolidation, then triggers when price breaks out of a 10-bar range
+with above-average volume confirming the move. Volume is the confirmation gate,
+not the driver -- the core thesis is that tight consolidations within an
+established trend resolve as continuation breakouts, and elevated relative volume
+validates the breakout as institutional rather than noise. It runs entirely on L1
+market data (SMA, ATR, OHLCV) with no proxies or proprietary feeds, and the ATR
+compression gate naturally favors mid/large cap equities whose ATR-to-price
+ratio is structurally low.
+
+Ensemble B (SPY scalp) also performed well in testing (100% win rate), but on
+only 2 completed trades -- too small to validate. All 5 gates rely on proxy
+approximations of proprietary data feeds (NYSE TICK, HIRO), and the proxy
+quality is questionable (SAM returned the same value on every signal).
+QuantConnect's data library does not carry the underlying feeds needed to
+improve these proxies.
+
+
+QUANTCONNECT PRICING
+--------------------
+
+Minimum tier for live alerts, paper trading, and backtesting:
+
+Researcher: $60/month
+
+  What you need              Researcher ($60/mo) provides
+  -------------------------  ------------------------------
+  1 live algorithm           L-MICRO node (1 algo)
+  Webhook alerts             Included, 20/hr limit
+  Email alerts               Included, 20/hr limit
+  Telegram alerts            Included, 20/hr limit
+  Minute-resolution data     Included (US equities)
+  API access                 Included
+
+
+CANDIDATE UNIVERSE -- 15 MID/LARGE CAP EQUITIES FOR DEXTER
+-----------------------------------------------------------
+
+  #   Ticker  Name              Sector
+  --  ------  ----------------  ---------------
+   1  AAPL    Apple             Tech
+   2  MSFT    Microsoft         Tech
+   3  GOOGL   Alphabet          Tech
+   4  AMZN    Amazon            Tech/Retail
+   5  META    Meta              Tech
+   6  NVDA    Nvidia            Semis
+   7  AVGO    Broadcom          Semis
+   8  JPM     JPMorgan          Financials
+   9  V       Visa              Financials
+  10  GS      Goldman Sachs     Financials
+  11  UNH     UnitedHealth      Healthcare
+  12  LLY     Eli Lilly         Healthcare
+  13  COST    Costco            Consumer
+  14  HD      Home Depot        Consumer
+  15  CRM     Salesforce        Enterprise SW
+
+Index ETFs (SPY, QQQ) were excluded -- their intraday range is too narrow for
+meaningful breakout trades, and their ATR ratio is so low that the compression
+gate never filters, effectively reducing Dexter to a 3-gate model. Individual
+equities with real intraday movement ($2-5/day) produce cleaner signals and
+better per-trip P&L.
+
+Selection criteria: market cap >$200B, average daily volume >10M shares,
+ATR/close ratio structurally below the 0.8% compression threshold, sector
+diversity, and sufficient intraday range for profitable breakout-to-EOD trades.
+At 15 symbols with a 60-minute cooldown per symbol and signals concentrated in
+the last 90 minutes of trading, realistic signal volume is 5-15 per day -- well
+within the 20/hr alert limit. Fixing the RVOL calculation (simple to
+time-of-day) before going live would tighten signal quality further by filtering
+out false late-day volume spikes.

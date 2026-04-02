@@ -1,0 +1,19 @@
+{
+    "algorithm-type-name": "ShoulderTapsAlgorithm",
+    "algorithm-language": "Python",
+    "algorithm-location": "main.py",
+    "parameters": {
+        "start_year": "2026",
+        "start_month": "2",
+        "end_year": "2026",
+        "end_month": "3",
+        "cash": "500000",
+        "trading_mode": "equity",
+        "webhook_url": "",
+        "webhook_api_key": "",
+        "alert_email": ""
+    },
+    "description": "Shoulder Taps trading algorithm with DEXTER breakout model",
+    "cloud-id": 28278775,
+    "organization-id": "58ef8e576e9b4d9b3a9982fbbc2aee1b"
+}

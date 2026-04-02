@@ -1,0 +1,511 @@
+Launching analysis for ShoulderTapsAlgorithm with LEAN Engine v2.5.0.0
+2026-02-01 00:00:00 [INIT] ShoulderTaps initialized | mode=equity | symbols=['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'AVGO', 'JPM', 'V', 'GS', 'UNH', 'LLY', 'COST', 'HD', 'CRM']
+2026-01-22 00:00:00 Algorithm starting warm up...
+2026-02-02 09:31:00 [dexter] BEAR on MSFT strength=70 | BEAR DEXTER breakout, ATR ratio=0.00458, RVOL=1.40
+2026-02-02 09:31:00 [ORDER] MSFT filled | qty=-100.0 price=430.82 | tag=dexter_BEAR
+2026-02-02 09:31:00 Algorithm finished warming up.
+2026-02-02 14:31:00 [ORDER] MSFT filled | qty=100.0 price=428.16 | tag=atr_profit_take
+2026-02-02 14:31:00 [ATR_PROFIT] MSFT BEAR hit 1.5x ATR target=$2.96 | P&L=286.93
+2026-02-03 14:40:00 [dexter] BULL on GOOGL strength=66 | BULL DEXTER breakout, ATR ratio=0.00176, RVOL=1.33
+2026-02-03 14:40:00 [dexter] BULL on AMZN strength=75 | BULL DEXTER breakout, ATR ratio=0.00221, RVOL=1.51
+2026-02-03 14:40:00 [dexter] BULL on GS strength=65 | BULL DEXTER breakout, ATR ratio=0.00210, RVOL=1.30
+2026-02-03 14:40:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00216, RVOL=4.14
+2026-02-03 14:40:00 [dexter] BEAR on CRM strength=83 | BEAR DEXTER breakout, ATR ratio=0.00398, RVOL=1.56
+2026-02-03 14:40:00 [ORDER] GOOGL filled | qty=100.0 price=344.81 | tag=dexter_BULL
+2026-02-03 14:40:00 [ORDER] AMZN filled | qty=100.0 price=243.61 | tag=dexter_BULL
+2026-02-03 14:40:00 [ORDER] GS filled | qty=100.0 price=954.10 | tag=dexter_BULL
+2026-02-03 14:40:00 [ORDER] COST filled | qty=100.0 price=978.35 | tag=dexter_BULL
+2026-02-03 14:40:00 [ORDER] CRM filled | qty=-100.0 price=202.75 | tag=dexter_BEAR
+2026-02-03 14:41:00 [ORDER] AMZN filled | qty=-100.0 price=244.21 | tag=atr_profit_take
+2026-02-03 14:41:00 [ATR_PROFIT] AMZN BULL hit 1.5x ATR target=$0.81 | P&L=70.83
+2026-02-03 14:42:00 [ORDER] GOOGL filled | qty=-100.0 price=343.31 | tag=atr_stop_loss
+2026-02-03 14:42:00 [ATR_STOP] GOOGL BULL hit 1.5x ATR stop=$0.91 | P&L=-133.77
+2026-02-03 14:42:00 [ORDER] GS filled | qty=-100.0 price=954.61 | tag=atr_floor_take
+2026-02-03 14:42:00 [ATR_FLOOR] GS BULL retraced to 0.75x ATR floor=$1.50 | P&L=98.32
+2026-02-03 14:42:00 [ORDER] COST filled | qty=-100.0 price=973.78 | tag=atr_stop_loss
+2026-02-03 14:42:00 [ATR_STOP] COST BULL hit 1.5x ATR stop=$3.18 | P&L=-408.89
+2026-02-03 14:46:00 [ORDER] CRM filled | qty=100.0 price=203.10 | tag=atr_floor_take
+2026-02-03 14:46:00 [ATR_FLOOR] CRM BEAR retraced to 0.75x ATR floor=$0.61 | P&L=-25.64
+2026-02-03 14:50:00 [dexter] BULL on JPM strength=74 | BULL DEXTER breakout, ATR ratio=0.00278, RVOL=1.49
+2026-02-03 14:50:00 [dexter] BULL on HD strength=80 | BULL DEXTER breakout, ATR ratio=0.00285, RVOL=1.62
+2026-02-03 14:50:00 [ORDER] JPM filled | qty=100.0 price=315.52 | tag=dexter_BULL
+2026-02-03 14:50:00 [ORDER] HD filled | qty=100.0 price=384.96 | tag=dexter_BULL
+2026-02-03 15:00:00 [dexter] BULL on AAPL strength=80 | BULL DEXTER breakout, ATR ratio=0.00298, RVOL=1.64
+2026-02-03 15:00:00 [dexter] BEAR on NVDA strength=82 | BEAR DEXTER breakout, ATR ratio=0.00381, RVOL=1.54
+2026-02-03 15:00:00 [dexter] BEAR on AVGO strength=73 | BEAR DEXTER breakout, ATR ratio=0.00473, RVOL=1.45
+2026-02-03 15:00:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00476, RVOL=1.86
+2026-02-03 15:00:00 [ORDER] AAPL filled | qty=100.0 price=270.50 | tag=dexter_BULL
+2026-02-03 15:00:00 [ORDER] NVDA filled | qty=-100.0 price=181.74 | tag=dexter_BEAR
+2026-02-03 15:00:00 [ORDER] AVGO filled | qty=-100.0 price=323.24 | tag=dexter_BEAR
+2026-02-03 15:00:00 [ORDER] CRM filled | qty=-100.0 price=200.92 | tag=dexter_BEAR
+2026-02-03 15:03:00 [ORDER] AVGO filled | qty=100.0 price=321.18 | tag=atr_profit_take
+2026-02-03 15:03:00 [ATR_PROFIT] AVGO BEAR hit 1.5x ATR target=$2.29 | P&L=220.83
+2026-02-03 15:04:00 [ORDER] NVDA filled | qty=100.0 price=181.66 | tag=atr_floor_take
+2026-02-03 15:04:00 [ATR_FLOOR] NVDA BEAR retraced to 0.75x ATR floor=$0.52 | P&L=16.41
+2026-02-03 15:07:00 [ORDER] JPM filled | qty=-100.0 price=315.83 | tag=atr_floor_take
+2026-02-03 15:07:00 [ATR_FLOOR] JPM BULL retraced to 0.75x ATR floor=$0.66 | P&L=45.23
+2026-02-03 15:10:00 [dexter] BEAR on MSFT strength=60 | BEAR DEXTER breakout, ATR ratio=0.00329, RVOL=1.21
+2026-02-03 15:10:00 [dexter] BEAR on NVDA strength=77 | BEAR DEXTER breakout, ATR ratio=0.00419, RVOL=1.44
+2026-02-03 15:10:00 [dexter] BULL on JPM strength=80 | BULL DEXTER breakout, ATR ratio=0.00310, RVOL=1.71
+2026-02-03 15:10:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00509, RVOL=2.27
+2026-02-03 15:10:00 [ORDER] MSFT filled | qty=-100.0 price=414.01 | tag=dexter_BEAR
+2026-02-03 15:10:00 [ORDER] NVDA filled | qty=-100.0 price=180.91 | tag=dexter_BEAR
+2026-02-03 15:10:00 [ORDER] JPM filled | qty=100.0 price=316.27 | tag=dexter_BULL
+2026-02-03 15:13:00 [ORDER] CRM filled | qty=100.0 price=199.61 | tag=atr_profit_take
+2026-02-03 15:13:00 [ATR_PROFIT] CRM BEAR hit 1.5x ATR target=$1.43 | P&L=140.10
+2026-02-03 15:14:00 [ORDER] AAPL filled | qty=-100.0 price=268.69 | tag=atr_stop_loss
+2026-02-03 15:14:00 [ATR_STOP] AAPL BULL hit 1.5x ATR stop=$1.21 | P&L=-168.59
+2026-02-03 15:16:00 [ORDER] HD filled | qty=-100.0 price=389.05 | tag=atr_profit_take
+2026-02-03 15:16:00 [ATR_PROFIT] HD BULL hit 1.5x ATR target=$1.64 | P&L=427.26
+2026-02-03 15:17:00 [ORDER] NVDA filled | qty=100.0 price=181.01 | tag=atr_floor_take
+2026-02-03 15:17:00 [ATR_FLOOR] NVDA BEAR retraced to 0.75x ATR floor=$0.57 | P&L=-2.05
+2026-02-03 15:19:00 [ORDER] JPM filled | qty=-100.0 price=314.41 | tag=atr_stop_loss
+2026-02-03 15:19:00 [ATR_STOP] JPM BULL hit 1.5x ATR stop=$1.47 | P&L=-171.31
+2026-02-03 15:20:00 [dexter] BULL on HD strength=80 | BULL DEXTER breakout, ATR ratio=0.00387, RVOL=5.07
+2026-02-03 15:20:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00525, RVOL=3.00
+2026-02-03 15:20:00 [ORDER] HD filled | qty=100.0 price=389.46 | tag=dexter_BULL
+2026-02-03 15:20:00 [ORDER] CRM filled | qty=-100.0 price=199.49 | tag=dexter_BEAR
+2026-02-03 15:26:00 [ORDER] CRM filled | qty=100.0 price=198.96 | tag=atr_floor_take
+2026-02-03 15:26:00 [ATR_FLOOR] CRM BEAR retraced to 0.75x ATR floor=$0.79 | P&L=61.52
+2026-02-03 15:27:00 [ORDER] HD filled | qty=-100.0 price=389.93 | tag=atr_floor_take
+2026-02-03 15:27:00 [ATR_FLOOR] HD BULL retraced to 0.75x ATR floor=$1.13 | P&L=65.54
+2026-02-03 15:30:00 [dexter] BEAR on MSFT strength=62 | BEAR DEXTER breakout, ATR ratio=0.00355, RVOL=1.24
+2026-02-03 15:30:00 [dexter] BEAR on AVGO strength=80 | BEAR DEXTER breakout, ATR ratio=0.00576, RVOL=2.09
+2026-02-03 15:30:00 [dexter] BULL on HD strength=85 | BULL DEXTER breakout, ATR ratio=0.00418, RVOL=4.05
+2026-02-03 15:30:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00568, RVOL=3.30
+2026-02-03 15:30:00 [ORDER] AVGO filled | qty=-100.0 price=319.28 | tag=dexter_BEAR
+2026-02-03 15:30:00 [ORDER] HD filled | qty=100.0 price=390.94 | tag=dexter_BULL
+2026-02-03 15:30:00 [ORDER] CRM filled | qty=-100.0 price=198.30 | tag=dexter_BEAR
+2026-02-03 15:31:00 [ORDER] MSFT filled | qty=100.0 price=412.32 | tag=atr_profit_take
+2026-02-03 15:31:00 [ATR_PROFIT] MSFT BEAR hit 1.5x ATR target=$2.05 | P&L=188.79
+2026-02-03 15:36:00 [ORDER] AVGO filled | qty=100.0 price=316.69 | tag=atr_profit_take
+2026-02-03 15:36:00 [ATR_PROFIT] AVGO BEAR hit 1.5x ATR target=$2.76 | P&L=274.03
+2026-02-03 15:36:00 [ORDER] HD filled | qty=-100.0 price=388.00 | tag=atr_stop_loss
+2026-02-03 15:36:00 [ATR_STOP] HD BULL hit 1.5x ATR stop=$2.45 | P&L=-276.04
+2026-02-03 15:38:00 [ORDER] CRM filled | qty=100.0 price=197.98 | tag=atr_floor_take
+2026-02-03 15:38:00 [ATR_FLOOR] CRM BEAR retraced to 0.75x ATR floor=$0.85 | P&L=40.58
+2026-02-03 15:40:00 [dexter] BEAR on AVGO strength=80 | BEAR DEXTER breakout, ATR ratio=0.00616, RVOL=1.98
+2026-02-03 15:40:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00322, RVOL=2.53
+2026-02-03 15:40:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00580, RVOL=3.17
+2026-02-03 15:40:00 [ORDER] AVGO filled | qty=-100.0 price=316.74 | tag=dexter_BEAR
+2026-02-03 15:40:00 [ORDER] COST filled | qty=100.0 price=983.42 | tag=dexter_BULL
+2026-02-03 15:40:00 [ORDER] CRM filled | qty=-100.0 price=197.68 | tag=dexter_BEAR
+2026-02-03 15:47:00 [ORDER] AVGO filled | qty=100.0 price=315.76 | tag=atr_floor_take
+2026-02-03 15:47:00 [ATR_FLOOR] AVGO BEAR retraced to 0.75x ATR floor=$1.47 | P&L=112.53
+2026-02-03 15:59:00 [ORDER] COST filled | qty=-100.0 price=979.00 | tag=eod
+2026-02-03 15:59:00 [ORDER] CRM filled | qty=100.0 price=198.38 | tag=eod
+2026-02-04 14:40:00 [dexter] BULL on AAPL strength=63 | BULL DEXTER breakout, ATR ratio=0.00314, RVOL=1.26
+2026-02-04 14:40:00 [dexter] BEAR on AVGO strength=69 | BEAR DEXTER breakout, ATR ratio=0.00345, RVOL=1.38
+2026-02-04 14:40:00 [dexter] BULL on COST strength=78 | BULL DEXTER breakout, ATR ratio=0.00188, RVOL=1.56
+2026-02-04 14:40:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00469, RVOL=1.67
+2026-02-04 14:40:00 [ORDER] AAPL filled | qty=100.0 price=275.71 | tag=dexter_BULL
+2026-02-04 14:40:00 [ORDER] AVGO filled | qty=-100.0 price=318.09 | tag=dexter_BEAR
+2026-02-04 14:40:00 [ORDER] COST filled | qty=100.0 price=985.46 | tag=dexter_BULL
+2026-02-04 14:40:00 [ORDER] CRM filled | qty=-100.0 price=190.30 | tag=dexter_BEAR
+2026-02-04 14:42:00 [ORDER] AVGO filled | qty=100.0 price=316.32 | tag=atr_profit_take
+2026-02-04 14:42:00 [ATR_PROFIT] AVGO BEAR hit 1.5x ATR target=$1.65 | P&L=191.59
+2026-02-04 14:42:00 [ORDER] COST filled | qty=-100.0 price=987.51 | tag=atr_profit_take
+2026-02-04 14:42:00 [ATR_PROFIT] COST BULL hit 1.5x ATR target=$2.78 | P&L=253.25
+2026-02-04 14:46:00 [ORDER] AAPL filled | qty=-100.0 price=276.87 | tag=atr_profit_take
+2026-02-04 14:46:00 [ATR_PROFIT] AAPL BULL hit 1.5x ATR target=$1.30 | P&L=128.72
+2026-02-04 14:46:00 [ORDER] CRM filled | qty=100.0 price=188.63 | tag=atr_profit_take
+2026-02-04 14:46:00 [ATR_PROFIT] CRM BEAR hit 1.5x ATR target=$1.34 | P&L=175.98
+2026-02-04 14:50:00 [dexter] BULL on AAPL strength=80 | BULL DEXTER breakout, ATR ratio=0.00357, RVOL=1.79
+2026-02-04 14:50:00 [dexter] BEAR on GS strength=80 | BEAR DEXTER breakout, ATR ratio=0.00261, RVOL=2.02
+2026-02-04 14:50:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00248, RVOL=2.22
+2026-02-04 14:50:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00546, RVOL=2.40
+2026-02-04 14:50:00 [ORDER] AAPL filled | qty=100.0 price=277.78 | tag=dexter_BULL
+2026-02-04 14:50:00 [ORDER] GS filled | qty=-100.0 price=930.89 | tag=dexter_BEAR
+2026-02-04 14:50:00 [ORDER] COST filled | qty=100.0 price=994.17 | tag=dexter_BULL
+2026-02-04 14:50:00 [ORDER] CRM filled | qty=-100.0 price=189.41 | tag=dexter_BEAR
+2026-02-04 14:52:00 [ORDER] GS filled | qty=100.0 price=925.57 | tag=atr_profit_take
+2026-02-04 14:52:00 [ATR_PROFIT] GS BEAR hit 1.5x ATR target=$3.64 | P&L=577.43
+2026-02-04 14:57:00 [ORDER] AAPL filled | qty=-100.0 price=278.15 | tag=atr_floor_take
+2026-02-04 14:57:00 [ATR_FLOOR] AAPL BULL retraced to 0.75x ATR floor=$0.74 | P&L=50.13
+2026-02-04 14:58:00 [ORDER] CRM filled | qty=100.0 price=187.70 | tag=atr_profit_take
+2026-02-04 14:58:00 [ATR_PROFIT] CRM BEAR hit 1.5x ATR target=$1.55 | P&L=178.53
+2026-02-04 15:00:00 [dexter] BEAR on GOOGL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00310, RVOL=2.47
+2026-02-04 15:00:00 [dexter] BEAR on GS strength=80 | BEAR DEXTER breakout, ATR ratio=0.00361, RVOL=1.83
+2026-02-04 15:00:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00603, RVOL=3.73
+2026-02-04 15:00:00 [ORDER] GOOGL filled | qty=-100.0 price=336.37 | tag=dexter_BEAR
+2026-02-04 15:00:00 [ORDER] GS filled | qty=-100.0 price=917.95 | tag=dexter_BEAR
+2026-02-04 15:00:00 [ORDER] CRM filled | qty=-100.0 price=188.08 | tag=dexter_BEAR
+2026-02-04 15:01:00 [ORDER] COST filled | qty=-100.0 price=989.38 | tag=atr_stop_loss
+2026-02-04 15:01:00 [ATR_STOP] COST BULL hit 1.5x ATR stop=$3.69 | P&L=-431.18
+2026-02-04 15:02:00 [ORDER] GS filled | qty=100.0 price=912.95 | tag=atr_profit_take
+2026-02-04 15:02:00 [ATR_PROFIT] GS BEAR hit 1.5x ATR target=$4.98 | P&L=545.08
+2026-02-04 15:06:00 [ORDER] GOOGL filled | qty=100.0 price=336.70 | tag=atr_floor_take
+2026-02-04 15:06:00 [ATR_FLOOR] GOOGL BEAR retraced to 0.75x ATR floor=$0.78 | P&L=-17.33
+2026-02-04 15:06:00 [ORDER] CRM filled | qty=100.0 price=190.43 | tag=atr_stop_loss
+2026-02-04 15:06:00 [ATR_STOP] CRM BEAR hit 1.5x ATR stop=$1.70 | P&L=-226.41
+2026-02-04 15:10:00 [dexter] BEAR on GOOGL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00326, RVOL=2.29
+2026-02-04 15:10:00 [ORDER] GOOGL filled | qty=-100.0 price=335.65 | tag=dexter_BEAR
+2026-02-04 15:34:00 [ORDER] GOOGL filled | qty=100.0 price=333.92 | tag=atr_profit_take
+2026-02-04 15:34:00 [ATR_PROFIT] GOOGL BEAR hit 1.5x ATR target=$1.64 | P&L=189.21
+2026-02-04 15:40:00 [dexter] BEAR on GOOGL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00403, RVOL=3.11
+2026-02-04 15:40:00 [ORDER] GOOGL filled | qty=-100.0 price=334.31 | tag=dexter_BEAR
+2026-02-04 15:59:00 [ORDER] GOOGL filled | qty=100.0 price=333.86 | tag=eod
+2026-02-04 16:00:00 [dexter] BEAR on AVGO strength=85 | BEAR DEXTER breakout, ATR ratio=0.00704, RVOL=7.94
+2026-02-05 09:31:00 [ORDER] AVGO filled | qty=-100.0 price=308.50 | tag=dexter_BEAR
+2026-02-05 14:32:00 [ORDER] AVGO filled | qty=100.0 price=314.66 | tag=atr_stop_loss
+2026-02-05 14:32:00 [ATR_STOP] AVGO BEAR hit 1.5x ATR stop=$3.26 | P&L=-601.43
+2026-02-05 14:40:00 [dexter] BEAR on GOOGL strength=85 | BEAR DEXTER breakout, ATR ratio=0.00752, RVOL=4.61
+2026-02-05 14:40:00 [dexter] BEAR on AMZN strength=85 | BEAR DEXTER breakout, ATR ratio=0.00515, RVOL=3.07
+2026-02-05 14:40:00 [dexter] BULL on V strength=61 | BULL DEXTER breakout, ATR ratio=0.00318, RVOL=1.21
+2026-02-05 14:40:00 [ORDER] GOOGL filled | qty=-100.0 price=322.48 | tag=dexter_BEAR
+2026-02-05 14:40:00 [ORDER] AMZN filled | qty=-100.0 price=224.54 | tag=dexter_BEAR
+2026-02-05 14:40:00 [ORDER] V filled | qty=100.0 price=334.73 | tag=dexter_BULL
+2026-02-05 14:45:00 [ORDER] V filled | qty=-100.0 price=332.60 | tag=atr_stop_loss
+2026-02-05 14:45:00 [ATR_STOP] V BULL hit 1.5x ATR stop=$1.60 | P&L=-196.73
+2026-02-05 15:00:00 [dexter] BEAR on MSFT strength=63 | BEAR DEXTER breakout, ATR ratio=0.00462, RVOL=1.27
+2026-02-05 15:00:00 [ORDER] MSFT filled | qty=-100.0 price=400.54 | tag=dexter_BEAR
+2026-02-05 15:00:00 [ORDER] AMZN filled | qty=100.0 price=224.12 | tag=atr_floor_take
+2026-02-05 15:00:00 [ATR_FLOOR] AMZN BEAR retraced to 0.75x ATR floor=$0.87 | P&L=52.27
+2026-02-05 15:04:00 [ORDER] GOOGL filled | qty=100.0 price=319.15 | tag=atr_profit_take
+2026-02-05 15:04:00 [ATR_PROFIT] GOOGL BEAR hit 1.5x ATR target=$3.64 | P&L=347.36
+2026-02-05 15:08:00 [ORDER] MSFT filled | qty=100.0 price=399.75 | tag=atr_floor_take
+2026-02-05 15:08:00 [ATR_FLOOR] MSFT BEAR retraced to 0.75x ATR floor=$1.39 | P&L=97.96
+2026-02-05 15:10:00 [dexter] BEAR on MSFT strength=80 | BEAR DEXTER breakout, ATR ratio=0.00482, RVOL=1.85
+2026-02-05 15:10:00 [dexter] BEAR on GS strength=85 | BEAR DEXTER breakout, ATR ratio=0.00484, RVOL=2.26
+2026-02-05 15:10:00 [ORDER] MSFT filled | qty=-100.0 price=399.74 | tag=dexter_BEAR
+2026-02-05 15:10:00 [ORDER] GS filled | qty=-100.0 price=890.17 | tag=dexter_BEAR
+2026-02-05 15:14:00 [ORDER] GS filled | qty=100.0 price=883.19 | tag=atr_profit_take
+2026-02-05 15:14:00 [ATR_PROFIT] GS BEAR hit 1.5x ATR target=$6.47 | P&L=741.47
+2026-02-05 15:18:00 [ORDER] MSFT filled | qty=100.0 price=400.02 | tag=atr_floor_take
+2026-02-05 15:18:00 [ATR_FLOOR] MSFT BEAR retraced to 0.75x ATR floor=$1.45 | P&L=-9.50
+2026-02-05 15:20:00 [dexter] BEAR on JPM strength=80 | BEAR DEXTER breakout, ATR ratio=0.00425, RVOL=1.80
+2026-02-05 15:20:00 [dexter] BEAR on GS strength=85 | BEAR DEXTER breakout, ATR ratio=0.00537, RVOL=2.39
+2026-02-05 15:20:00 [ORDER] JPM filled | qty=-100.0 price=307.36 | tag=dexter_BEAR
+2026-02-05 15:20:00 [ORDER] GS filled | qty=-100.0 price=880.35 | tag=dexter_BEAR
+2026-02-05 15:30:00 [dexter] BEAR on JPM strength=79 | BEAR DEXTER breakout, ATR ratio=0.00442, RVOL=1.57
+2026-02-05 15:30:00 [dexter] BEAR on GS strength=85 | BEAR DEXTER breakout, ATR ratio=0.00539, RVOL=2.64
+2026-02-05 15:34:00 [ORDER] GS filled | qty=100.0 price=878.43 | tag=atr_floor_take
+2026-02-05 15:34:00 [ATR_FLOOR] GS BEAR retraced to 0.75x ATR floor=$3.55 | P&L=235.46
+2026-02-05 15:36:00 [ORDER] JPM filled | qty=100.0 price=306.79 | tag=atr_floor_take
+2026-02-05 15:36:00 [ATR_FLOOR] JPM BEAR retraced to 0.75x ATR floor=$0.98 | P&L=71.37
+2026-02-06 14:50:00 [dexter] BULL on AVGO strength=73 | BULL DEXTER breakout, ATR ratio=0.00635, RVOL=1.36
+2026-02-06 14:50:00 [ORDER] AVGO filled | qty=100.0 price=326.46 | tag=dexter_BULL
+2026-02-06 15:00:00 [dexter] BULL on AAPL strength=80 | BULL DEXTER breakout, ATR ratio=0.00275, RVOL=1.67
+2026-02-06 15:00:00 [ORDER] AAPL filled | qty=100.0 price=280.67 | tag=dexter_BULL
+2026-02-06 15:04:00 [ORDER] AVGO filled | qty=-100.0 price=322.95 | tag=atr_stop_loss
+2026-02-06 15:04:00 [ATR_STOP] AVGO BULL hit 1.5x ATR stop=$3.11 | P&L=-335.81
+2026-02-06 15:10:00 [dexter] BEAR on META strength=63 | BEAR DEXTER breakout, ATR ratio=0.00381, RVOL=1.25
+2026-02-06 15:10:00 [dexter] BULL on GS strength=70 | BULL DEXTER breakout, ATR ratio=0.00502, RVOL=1.40
+2026-02-06 15:10:00 [ORDER] META filled | qty=-100.0 price=647.54 | tag=dexter_BEAR
+2026-02-06 15:10:00 [ORDER] GS filled | qty=100.0 price=925.99 | tag=dexter_BULL
+2026-02-06 15:14:00 [ORDER] AAPL filled | qty=-100.0 price=279.21 | tag=atr_stop_loss
+2026-02-06 15:14:00 [ATR_STOP] AAPL BULL hit 1.5x ATR stop=$1.16 | P&L=-133.03
+2026-02-06 15:20:00 [dexter] BULL on GS strength=80 | BULL DEXTER breakout, ATR ratio=0.00497, RVOL=1.89
+2026-02-06 15:20:00 [ORDER] META filled | qty=100.0 price=651.95 | tag=atr_stop_loss
+2026-02-06 15:20:00 [ATR_STOP] META BEAR hit 1.5x ATR stop=$3.70 | P&L=-409.89
+2026-02-06 15:30:00 [dexter] BULL on NVDA strength=80 | BULL DEXTER breakout, ATR ratio=0.00689, RVOL=1.94
+2026-02-06 15:30:00 [ORDER] NVDA filled | qty=100.0 price=182.74 | tag=dexter_BULL
+2026-02-06 15:59:00 [ORDER] NVDA filled | qty=-100.0 price=182.56 | tag=eod
+2026-02-06 15:59:00 [ORDER] GS filled | qty=-100.0 price=921.24 | tag=eod
+2026-02-09 14:40:00 [dexter] BEAR on AMZN strength=85 | BEAR DEXTER breakout, ATR ratio=0.00562, RVOL=2.01
+2026-02-09 14:40:00 [dexter] BULL on NVDA strength=85 | BULL DEXTER breakout, ATR ratio=0.00562, RVOL=1.82
+2026-02-09 14:40:00 [dexter] BULL on JPM strength=80 | BULL DEXTER breakout, ATR ratio=0.00196, RVOL=2.75
+2026-02-09 14:40:00 [dexter] BULL on LLY strength=65 | BULL DEXTER breakout, ATR ratio=0.00530, RVOL=1.20
+2026-02-09 14:40:00 [ORDER] AMZN filled | qty=-100.0 price=205.85 | tag=dexter_BEAR
+2026-02-09 14:40:00 [ORDER] NVDA filled | qty=100.0 price=189.60 | tag=dexter_BULL
+2026-02-09 14:40:00 [ORDER] JPM filled | qty=100.0 price=322.86 | tag=dexter_BULL
+2026-02-09 14:40:00 [ORDER] LLY filled | qty=100.0 price=1091.77 | tag=dexter_BULL
+2026-02-09 14:42:00 [ORDER] JPM filled | qty=-100.0 price=323.88 | tag=atr_profit_take
+2026-02-09 14:42:00 [ATR_PROFIT] JPM BULL hit 1.5x ATR target=$0.95 | P&L=116.86
+2026-02-09 14:46:00 [ORDER] NVDA filled | qty=-100.0 price=191.21 | tag=atr_profit_take
+2026-02-09 14:46:00 [ATR_PROFIT] NVDA BULL hit 1.5x ATR target=$1.60 | P&L=169.03
+2026-02-09 14:50:00 [dexter] BULL on NVDA strength=85 | BULL DEXTER breakout, ATR ratio=0.00683, RVOL=2.64
+2026-02-09 14:50:00 [ORDER] NVDA filled | qty=100.0 price=193.62 | tag=dexter_BULL
+2026-02-09 14:50:00 [ORDER] LLY filled | qty=-100.0 price=1078.90 | tag=atr_stop_loss
+2026-02-09 14:50:00 [ATR_STOP] LLY BULL hit 1.5x ATR stop=$8.67 | P&L=-1233.57
+2026-02-09 14:54:00 [ORDER] AMZN filled | qty=100.0 price=205.62 | tag=atr_floor_take
+2026-02-09 14:54:00 [ATR_FLOOR] AMZN BEAR retraced to 0.75x ATR floor=$0.87 | P&L=32.20
+2026-02-09 14:55:00 [ORDER] NVDA filled | qty=-100.0 price=191.40 | tag=atr_stop_loss
+2026-02-09 14:55:00 [ATR_STOP] NVDA BULL hit 1.5x ATR stop=$1.98 | P&L=-212.68
+2026-02-09 15:20:00 [dexter] BULL on GS strength=65 | BULL DEXTER breakout, ATR ratio=0.00354, RVOL=1.29
+2026-02-09 15:20:00 [ORDER] GS filled | qty=100.0 price=941.47 | tag=dexter_BULL
+2026-02-09 15:32:00 [ORDER] GS filled | qty=-100.0 price=942.26 | tag=atr_floor_take
+2026-02-09 15:32:00 [ATR_FLOOR] GS BULL retraced to 0.75x ATR floor=$2.50 | P&L=124.95
+2026-02-09 15:40:00 [dexter] BULL on JPM strength=73 | BULL DEXTER breakout, ATR ratio=0.00287, RVOL=1.46
+2026-02-09 15:40:00 [dexter] BULL on GS strength=79 | BULL DEXTER breakout, ATR ratio=0.00355, RVOL=1.58
+2026-02-09 15:40:00 [ORDER] JPM filled | qty=100.0 price=326.20 | tag=dexter_BULL
+2026-02-09 15:40:00 [ORDER] GS filled | qty=100.0 price=944.95 | tag=dexter_BULL
+2026-02-09 15:50:00 [dexter] BEAR on HD strength=78 | BEAR DEXTER breakout, ATR ratio=0.00278, RVOL=1.57
+2026-02-09 15:59:00 [ORDER] JPM filled | qty=-100.0 price=325.88 | tag=eod
+2026-02-09 15:59:00 [ORDER] GS filled | qty=-100.0 price=944.68 | tag=eod
+2026-02-09 16:00:00 [dexter] BULL on JPM strength=70 | BULL DEXTER breakout, ATR ratio=0.00272, RVOL=1.40
+2026-02-09 16:00:00 [dexter] BEAR on V strength=80 | BEAR DEXTER breakout, ATR ratio=0.00329, RVOL=1.80
+2026-02-09 16:00:00 [dexter] BULL on CRM strength=63 | BULL DEXTER breakout, ATR ratio=0.00507, RVOL=1.26
+2026-02-10 09:31:00 [dexter] BULL on JPM strength=70 | BULL DEXTER breakout, ATR ratio=0.00272, RVOL=1.40
+2026-02-10 09:31:00 [dexter] BEAR on V strength=80 | BEAR DEXTER breakout, ATR ratio=0.00329, RVOL=1.80
+2026-02-10 09:31:00 [dexter] BULL on CRM strength=63 | BULL DEXTER breakout, ATR ratio=0.00507, RVOL=1.26
+2026-02-10 09:31:00 [ORDER] JPM filled | qty=100.0 price=326.56 | tag=dexter_BULL
+2026-02-10 09:31:00 [ORDER] V filled | qty=-100.0 price=326.45 | tag=dexter_BEAR
+2026-02-10 09:31:00 [ORDER] CRM filled | qty=100.0 price=194.66 | tag=dexter_BULL
+2026-02-10 14:31:00 [ORDER] JPM filled | qty=-100.0 price=323.86 | tag=atr_stop_loss
+2026-02-10 14:31:00 [ATR_STOP] JPM BULL hit 1.5x ATR stop=$1.33 | P&L=-255.32
+2026-02-10 14:31:00 [ORDER] CRM filled | qty=-100.0 price=191.20 | tag=atr_stop_loss
+2026-02-10 14:31:00 [ATR_STOP] CRM BULL hit 1.5x ATR stop=$1.48 | P&L=-337.23
+2026-02-10 14:33:00 [ORDER] V filled | qty=100.0 price=326.43 | tag=atr_floor_take
+2026-02-10 14:33:00 [ATR_FLOOR] V BEAR retraced to 0.75x ATR floor=$0.81 | P&L=17.17
+2026-02-10 15:00:00 [dexter] BULL on CRM strength=62 | BULL DEXTER breakout, ATR ratio=0.00517, RVOL=1.24
+2026-02-10 15:00:00 [ORDER] CRM filled | qty=100.0 price=198.30 | tag=dexter_BULL
+2026-02-10 15:10:00 [dexter] BULL on AMZN strength=80 | BULL DEXTER breakout, ATR ratio=0.00449, RVOL=1.70
+2026-02-10 15:10:00 [dexter] BULL on CRM strength=80 | BULL DEXTER breakout, ATR ratio=0.00540, RVOL=1.69
+2026-02-10 15:10:00 [ORDER] AMZN filled | qty=100.0 price=212.22 | tag=dexter_BULL
+2026-02-10 15:14:00 [ORDER] AMZN filled | qty=-100.0 price=210.46 | tag=atr_stop_loss
+2026-02-10 15:14:00 [ATR_STOP] AMZN BULL hit 1.5x ATR stop=$1.43 | P&L=-166.10
+2026-02-10 15:18:00 [ORDER] CRM filled | qty=-100.0 price=196.49 | tag=atr_stop_loss
+2026-02-10 15:18:00 [ATR_STOP] CRM BULL hit 1.5x ATR stop=$1.54 | P&L=-172.41
+2026-02-11 14:50:00 [dexter] BEAR on AMZN strength=80 | BEAR DEXTER breakout, ATR ratio=0.00297, RVOL=1.77
+2026-02-11 14:50:00 [dexter] BEAR on CRM strength=73 | BEAR DEXTER breakout, ATR ratio=0.00491, RVOL=1.45
+2026-02-11 14:50:00 [ORDER] AMZN filled | qty=-100.0 price=205.40 | tag=dexter_BEAR
+2026-02-11 14:50:00 [ORDER] CRM filled | qty=-100.0 price=187.76 | tag=dexter_BEAR
+2026-02-11 14:53:00 [ORDER] CRM filled | qty=100.0 price=187.36 | tag=atr_floor_take
+2026-02-11 14:53:00 [ATR_FLOOR] CRM BEAR retraced to 0.75x ATR floor=$0.69 | P&L=47.61
+2026-02-11 15:00:00 [dexter] BEAR on CRM strength=69 | BEAR DEXTER breakout, ATR ratio=0.00555, RVOL=1.38
+2026-02-11 15:00:00 [ORDER] CRM filled | qty=-100.0 price=186.12 | tag=dexter_BEAR
+2026-02-11 15:10:00 [dexter] BEAR on CRM strength=80 | BEAR DEXTER breakout, ATR ratio=0.00607, RVOL=1.60
+2026-02-11 15:10:00 [ORDER] CRM filled | qty=100.0 price=184.56 | tag=atr_profit_take
+2026-02-11 15:10:00 [ATR_PROFIT] CRM BEAR hit 1.5x ATR target=$1.55 | P&L=163.69
+2026-02-11 15:15:00 [ORDER] AMZN filled | qty=100.0 price=205.50 | tag=atr_floor_take
+2026-02-11 15:15:00 [ATR_FLOOR] AMZN BEAR retraced to 0.75x ATR floor=$0.46 | P&L=-0.85
+2026-02-11 15:20:00 [dexter] BEAR on GOOGL strength=72 | BEAR DEXTER breakout, ATR ratio=0.00318, RVOL=1.43
+2026-02-11 15:20:00 [dexter] BEAR on AVGO strength=80 | BEAR DEXTER breakout, ATR ratio=0.00559, RVOL=3.29
+2026-02-11 15:20:00 [ORDER] GOOGL filled | qty=-100.0 price=313.26 | tag=dexter_BEAR
+2026-02-11 15:20:00 [ORDER] AVGO filled | qty=-100.0 price=335.41 | tag=dexter_BEAR
+2026-02-11 15:28:00 [ORDER] GOOGL filled | qty=100.0 price=311.78 | tag=atr_profit_take
+2026-02-11 15:28:00 [ATR_PROFIT] GOOGL BEAR hit 1.5x ATR target=$1.49 | P&L=163.33
+2026-02-11 15:29:00 [ORDER] AVGO filled | qty=100.0 price=335.13 | tag=atr_floor_take
+2026-02-11 15:29:00 [ATR_FLOOR] AVGO BEAR retraced to 0.75x ATR floor=$1.41 | P&L=43.92
+2026-02-11 15:30:00 [dexter] BEAR on GOOGL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00343, RVOL=2.06
+2026-02-11 15:30:00 [ORDER] GOOGL filled | qty=-100.0 price=311.50 | tag=dexter_BEAR
+2026-02-11 15:40:00 [dexter] BULL on AAPL strength=80 | BULL DEXTER breakout, ATR ratio=0.00333, RVOL=1.91
+2026-02-11 15:40:00 [dexter] BEAR on GS strength=76 | BEAR DEXTER breakout, ATR ratio=0.00505, RVOL=1.53
+2026-02-11 15:40:00 [ORDER] AAPL filled | qty=100.0 price=278.52 | tag=dexter_BULL
+2026-02-11 15:40:00 [ORDER] GS filled | qty=-100.0 price=935.79 | tag=dexter_BEAR
+2026-02-11 15:50:00 [dexter] BEAR on GS strength=80 | BEAR DEXTER breakout, ATR ratio=0.00521, RVOL=2.11
+2026-02-11 15:50:00 [dexter] BEAR on CRM strength=85 | BEAR DEXTER breakout, ATR ratio=0.00602, RVOL=1.64
+2026-02-11 15:52:00 [ORDER] GS filled | qty=100.0 price=933.44 | tag=atr_floor_take
+2026-02-11 15:52:00 [ATR_FLOOR] GS BEAR retraced to 0.75x ATR floor=$3.55 | P&L=280.69
+2026-02-11 15:55:00 [ORDER] GOOGL filled | qty=100.0 price=313.71 | tag=atr_stop_loss
+2026-02-11 15:55:00 [ATR_STOP] GOOGL BEAR hit 1.5x ATR stop=$1.60 | P&L=-205.58
+2026-02-11 15:59:00 [ORDER] AAPL filled | qty=-100.0 price=279.53 | tag=eod
+2026-02-11 16:00:00 [dexter] BULL on AAPL strength=72 | BULL DEXTER breakout, ATR ratio=0.00342, RVOL=1.43
+2026-02-12 09:31:00 [ORDER] AAPL filled | qty=100.0 price=279.89 | tag=dexter_BULL
+2026-02-12 14:31:00 [ORDER] AAPL filled | qty=-100.0 price=274.16 | tag=atr_stop_loss
+2026-02-12 14:31:00 [ATR_STOP] AAPL BULL hit 1.5x ATR stop=$1.43 | P&L=-560.49
+2026-02-12 15:30:00 [dexter] BULL on UNH strength=80 | BULL DEXTER breakout, ATR ratio=0.00428, RVOL=2.04
+2026-02-12 15:30:00 [ORDER] UNH filled | qty=100.0 price=283.34 | tag=dexter_BULL
+2026-02-12 15:40:00 [dexter] BEAR on AMZN strength=80 | BEAR DEXTER breakout, ATR ratio=0.00393, RVOL=1.75
+2026-02-12 15:40:00 [dexter] BEAR on JPM strength=64 | BEAR DEXTER breakout, ATR ratio=0.00346, RVOL=1.27
+2026-02-12 15:40:00 [ORDER] AMZN filled | qty=-100.0 price=200.62 | tag=dexter_BEAR
+2026-02-12 15:40:00 [ORDER] JPM filled | qty=-100.0 price=307.91 | tag=dexter_BEAR
+2026-02-12 15:48:00 [ORDER] UNH filled | qty=-100.0 price=281.19 | tag=atr_stop_loss
+2026-02-12 15:48:00 [ATR_STOP] UNH BULL hit 1.5x ATR stop=$1.82 | P&L=-201.66
+2026-02-12 15:49:00 [ORDER] AMZN filled | qty=100.0 price=199.44 | tag=atr_profit_take
+2026-02-12 15:49:00 [ATR_PROFIT] AMZN BEAR hit 1.5x ATR target=$1.18 | P&L=126.46
+2026-02-12 15:50:00 [dexter] BEAR on AMZN strength=80 | BEAR DEXTER breakout, ATR ratio=0.00420, RVOL=4.09
+2026-02-12 15:50:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00307, RVOL=1.89
+2026-02-12 15:56:00 [ORDER] JPM filled | qty=100.0 price=307.62 | tag=atr_floor_take
+2026-02-12 15:56:00 [ATR_FLOOR] JPM BEAR retraced to 0.75x ATR floor=$0.80 | P&L=43.00
+2026-02-12 16:00:00 [dexter] BEAR on AAPL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00421, RVOL=1.85
+2026-02-12 16:00:00 [dexter] BEAR on AMZN strength=80 | BEAR DEXTER breakout, ATR ratio=0.00433, RVOL=2.44
+2026-02-12 16:00:00 [dexter] BEAR on JPM strength=67 | BEAR DEXTER breakout, ATR ratio=0.00363, RVOL=1.35
+2026-02-12 16:00:00 [dexter] BEAR on CRM strength=78 | BEAR DEXTER breakout, ATR ratio=0.00638, RVOL=1.55
+2026-02-13 09:31:00 [dexter] BEAR on AAPL strength=80 | BEAR DEXTER breakout, ATR ratio=0.00421, RVOL=1.85
+2026-02-13 09:31:00 [dexter] BEAR on AMZN strength=80 | BEAR DEXTER breakout, ATR ratio=0.00433, RVOL=2.44
+2026-02-13 09:31:00 [dexter] BEAR on JPM strength=67 | BEAR DEXTER breakout, ATR ratio=0.00363, RVOL=1.35
+2026-02-13 09:31:00 [dexter] BEAR on CRM strength=78 | BEAR DEXTER breakout, ATR ratio=0.00638, RVOL=1.55
+2026-02-13 09:31:00 [ORDER] AAPL filled | qty=-100.0 price=268.05 | tag=dexter_BEAR
+2026-02-13 09:31:00 [ORDER] AMZN filled | qty=-100.0 price=198.24 | tag=dexter_BEAR
+2026-02-13 09:31:00 [ORDER] JPM filled | qty=-100.0 price=306.49 | tag=dexter_BEAR
+2026-02-13 09:31:00 [ORDER] CRM filled | qty=-100.0 price=182.16 | tag=dexter_BEAR
+2026-02-13 14:31:00 [ORDER] AAPL filled | qty=100.0 price=261.63 | tag=atr_profit_take
+2026-02-13 14:31:00 [ATR_PROFIT] AAPL BEAR hit 1.5x ATR target=$1.70 | P&L=653.59
+2026-02-13 14:31:00 [ORDER] JPM filled | qty=100.0 price=297.24 | tag=atr_profit_take
+2026-02-13 14:31:00 [ATR_PROFIT] JPM BEAR hit 1.5x ATR target=$1.67 | P&L=938.92
+2026-02-13 14:31:00 [ORDER] CRM filled | qty=100.0 price=184.84 | tag=atr_stop_loss
+2026-02-13 14:31:00 [ATR_STOP] CRM BEAR hit 1.5x ATR stop=$1.74 | P&L=-260.11
+2026-02-13 14:40:00 [dexter] BEAR on AAPL strength=79 | BEAR DEXTER breakout, ATR ratio=0.00266, RVOL=1.58
+2026-02-13 14:40:00 [dexter] BEAR on GS strength=85 | BEAR DEXTER breakout, ATR ratio=0.00493, RVOL=2.23
+2026-02-13 14:40:00 [dexter] BULL on CRM strength=63 | BULL DEXTER breakout, ATR ratio=0.00349, RVOL=1.27
+2026-02-13 14:40:00 [ORDER] AAPL filled | qty=-100.0 price=259.26 | tag=dexter_BEAR
+2026-02-13 14:40:00 [ORDER] GS filled | qty=-100.0 price=873.61 | tag=dexter_BEAR
+2026-02-13 14:40:00 [ORDER] CRM filled | qty=100.0 price=188.60 | tag=dexter_BULL
+2026-02-13 14:42:00 [ORDER] GS filled | qty=100.0 price=871.50 | tag=atr_floor_take
+2026-02-13 14:42:00 [ATR_FLOOR] GS BEAR retraced to 0.75x ATR floor=$3.23 | P&L=254.30
+2026-02-13 14:42:00 [ORDER] CRM filled | qty=-100.0 price=188.34 | tag=atr_floor_take
+2026-02-13 14:42:00 [ATR_FLOOR] CRM BULL retraced to 0.75x ATR floor=$0.49 | P&L=-17.43
+2026-02-13 14:44:00 [ORDER] AMZN filled | qty=100.0 price=198.46 | tag=atr_floor_take
+2026-02-13 14:44:00 [ATR_FLOOR] AMZN BEAR retraced to 0.75x ATR floor=$0.64 | P&L=-13.43
+2026-02-13 14:50:00 [dexter] BULL on CRM strength=80 | BULL DEXTER breakout, ATR ratio=0.00479, RVOL=2.39
+2026-02-13 14:50:00 [ORDER] CRM filled | qty=100.0 price=191.34 | tag=dexter_BULL
+2026-02-13 14:54:00 [ORDER] CRM filled | qty=-100.0 price=189.68 | tag=atr_stop_loss
+2026-02-13 14:54:00 [ATR_STOP] CRM BULL hit 1.5x ATR stop=$1.37 | P&L=-157.56
+2026-02-13 15:00:00 [dexter] BEAR on V strength=63 | BEAR DEXTER breakout, ATR ratio=0.00286, RVOL=1.26
+2026-02-13 15:00:00 [ORDER] V filled | qty=-100.0 price=320.18 | tag=dexter_BEAR
+2026-02-13 15:14:00 [ORDER] AAPL filled | qty=100.0 price=260.59 | tag=atr_stop_loss
+2026-02-13 15:14:00 [ATR_STOP] AAPL BEAR hit 1.5x ATR stop=$1.03 | P&L=-121.78
+2026-02-13 15:20:00 [dexter] BEAR on V strength=80 | BEAR DEXTER breakout, ATR ratio=0.00309, RVOL=1.68
+2026-02-13 15:20:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00317, RVOL=2.24
+2026-02-13 15:20:00 [ORDER] COST filled | qty=100.0 price=1013.06 | tag=dexter_BULL
+2026-02-13 15:23:00 [ORDER] V filled | qty=100.0 price=317.30 | tag=atr_profit_take
+2026-02-13 15:23:00 [ATR_PROFIT] V BEAR hit 1.5x ATR target=$1.37 | P&L=302.98
+2026-02-13 15:30:00 [dexter] BEAR on V strength=80 | BEAR DEXTER breakout, ATR ratio=0.00394, RVOL=3.85
+2026-02-13 15:30:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00316, RVOL=1.70
+2026-02-13 15:30:00 [ORDER] V filled | qty=-100.0 price=316.94 | tag=dexter_BEAR
+2026-02-13 15:33:00 [ORDER] COST filled | qty=-100.0 price=1014.13 | tag=atr_floor_take
+2026-02-13 15:33:00 [ATR_FLOOR] COST BULL retraced to 0.75x ATR floor=$2.41 | P&L=157.37
+2026-02-13 15:40:00 [dexter] BULL on COST strength=80 | BULL DEXTER breakout, ATR ratio=0.00321, RVOL=1.99
+2026-02-13 15:40:00 [ORDER] COST filled | qty=100.0 price=1016.81 | tag=dexter_BULL
+2026-02-13 15:42:00 [ORDER] V filled | qty=100.0 price=315.30 | tag=atr_profit_take
+2026-02-13 15:42:00 [ATR_PROFIT] V BEAR hit 1.5x ATR target=$1.87 | P&L=178.15
+2026-02-13 15:50:00 [dexter] BEAR on MSFT strength=73 | BEAR DEXTER breakout, ATR ratio=0.00438, RVOL=1.45
+2026-02-13 15:50:00 [dexter] BULL on COST strength=73 | BULL DEXTER breakout, ATR ratio=0.00327, RVOL=1.46
+2026-02-13 15:51:00 [ORDER] COST filled | qty=-100.0 price=1017.97 | tag=atr_floor_take
+2026-02-13 15:51:00 [ATR_FLOOR] COST BULL retraced to 0.75x ATR floor=$2.44 | P&L=166.19
+2026-02-13 16:00:00 ================================================================================
+2026-02-13 16:00:00 SHOULDER TAPS BACKTEST COMPLETE
+2026-02-13 16:00:00 ================================================================================
+2026-02-13 16:00:00 --- OVERALL STATS ---
+2026-02-13 16:00:00   Signals:          112
+2026-02-13 16:00:00   Completed Trips:  87
+2026-02-13 16:00:00   Win Rate:         58.6%
+2026-02-13 16:00:00   Total P&L:        $1681.27
+2026-02-13 16:00:00   Avg P&L/Trade:    $19.32
+2026-02-13 16:00:00   Avg Win:          $197.22
+2026-02-13 16:00:00   Avg Loss:         $-232.69
+2026-02-13 16:00:00   Largest Win:      $938.92
+2026-02-13 16:00:00   Largest Loss:     $-1233.57
+2026-02-13 16:00:00   Profit Factor:    1.2007
+2026-02-13 16:00:00   Payoff Ratio:     0.8476
+2026-02-13 16:00:00   Expectancy:       $19.32
+2026-02-13 16:00:00   Sharpe:           0.0644
+2026-02-13 16:00:00   Sortino:          0.0912
+2026-02-13 16:00:00   Max Drawdown:     $3389.93
+2026-02-13 16:00:00   Max Win Streak:   7
+2026-02-13 16:00:00   Max Loss Streak:  5
+2026-02-13 16:00:00   Avg Hold Time:    45 min
+2026-02-13 16:00:00   Min Hold Time:    1 min
+2026-02-13 16:00:00   Max Hold Time:    313 min
+2026-02-13 16:00:00   Alerts Fired:     112
+2026-02-13 16:00:00   Forward Returns:  0 completed, 112 pending
+2026-02-13 16:00:00 --- PER-MODEL ---
+2026-02-13 16:00:00   [dexter] signals=112 trips=87 WR=58.6% P&L=$1681.27 PF=1.2007 exp=$19.32
+2026-02-13 16:00:00 --- EXIT TYPE BREAKDOWN ---
+2026-02-13 16:00:00   Type           Trips     WR        P&L    Avg P&L   Avg Hold
+2026-02-13 16:00:00   -------------- ----- ------ ---------- ---------- ----------
+2026-02-13 16:00:00   Profit Take       26 100.0% $  7750.39 $   298.09       43m
+2026-02-13 16:00:00   Floor Take        29  75.9% $  2028.49 $    69.95       30m
+2026-02-13 16:00:00   Stop Loss         24   0.0% $ -7377.57 $  -307.40       71m
+2026-02-13 16:00:00   EOD Close          8  37.5% $  -720.04 $   -90.01       24m
+2026-02-13 16:00:00 --- PER-SYMBOL PERFORMANCE (sorted by P&L) ---
+2026-02-13 16:00:00   Ticker Trips     WR        P&L   AvgP&L   AvgWin  AvgLoss     Best    Worst   Hold  PT  FL  SL  TS EOD  Bull  Bear
+2026-02-13 16:00:00   ------ ----- ------ ---------- -------- -------- -------- -------- -------- ------ --- --- --- --- --- ----- -----
+2026-02-13 16:00:00   GS        10  90.0% $  2446.19 $ 244.62 $ 319.61 $-430.28 $ 741.47 $-430.28   12m   3   5   0   0   2     4     6
+2026-02-13 16:00:00   JPM        8  62.5% $   771.96 $  96.49 $ 243.08 $-147.81 $ 938.92 $-255.32   85m   2   3   2   0   1     5     3
+2026-02-13 16:00:00   MSFT       4  75.0% $   564.18 $ 141.05 $ 191.23 $  -9.50 $ 286.93 $  -9.50   84m   2   2   0   0   0     0     4
+2026-02-13 16:00:00   GOOGL      7  57.1% $   403.91 $  57.70 $ 190.15 $-118.89 $ 347.36 $-205.58   15m   3   1   2   0   1     1     6
+2026-02-13 16:00:00   V          4  75.0% $   301.57 $  75.39 $ 166.10 $-196.73 $ 302.98 $-196.73   86m   2   1   1   0   0     1     3
+2026-02-13 16:00:00   HD         3  66.7% $   216.76 $  72.25 $ 246.40 $-276.04 $ 427.26 $-276.04   13m   1   1   1   0   0     3     0
+2026-02-13 16:00:00   AMZN       7  57.1% $   101.39 $  14.48 $  70.44 $ -60.12 $ 126.46 $-166.10   55m   2   4   1   0   0     2     5
+2026-02-13 16:00:00   AAPL       8  50.0% $   -37.78 $  -4.72 $ 236.53 $-245.97 $ 653.59 $-560.49   87m   2   1   4   0   1     6     2
+2026-02-13 16:00:00   NVDA       5  40.0% $   -39.42 $  -7.88 $  92.72 $ -74.95 $ 169.03 $-212.68   10m   1   2   1   0   1     3     2
+2026-02-13 16:00:00   AVGO       7  71.4% $   -94.36 $ -13.48 $ 168.58 $-468.62 $ 274.03 $-601.43   49m   3   2   2   0   0     1     6
+2026-02-13 16:00:00   UNH        1   0.0% $  -201.66 $-201.66 $   0.00 $-201.66 $   0.00 $-201.66   18m   0   0   1   0   0     1     0
+2026-02-13 16:00:00   META       1   0.0% $  -409.89 $-409.89 $   0.00 $-409.89 $   0.00 $-409.89   10m   0   0   1   0   0     0     1
+2026-02-13 16:00:00   CRM       15  46.7% $  -450.18 $ -30.01 $ 115.43 $-157.27 $ 178.53 $-337.23   47m   4   5   5   0   1     4    11
+2026-02-13 16:00:00   COST       6  50.0% $  -657.84 $-109.64 $ 192.27 $-411.55 $ 253.25 $-431.18   10m   1   2   2   0   1     6     0
+2026-02-13 16:00:00   LLY        1   0.0% $ -1233.57 $-1233.57 $   0.00 $-1233.57 $   0.00 $-1233.57   10m   0   0   1   0   0     1     0
+2026-02-13 16:00:00 --- TRADE LOG ---
+2026-02-13 16:00:00     # Ticker Dir        Entry       Exit        P&L    ATR   Hold Exit Type       
+2026-02-13 16:00:00   --- ------ ----- ---------- ---------- ---------- ------ ------ ----------------
+2026-02-13 16:00:00     1 MSFT   BEAR  $   431.04 $   427.94 $   286.93 $ 1.97  300m profit take     
+2026-02-13 16:00:00     2 AMZN   BULL  $   243.49 $   244.33 $    70.83 $ 0.54    1m profit take     
+2026-02-13 16:00:00     3 GOOGL  BULL  $   344.63 $   343.48 $  -133.77 $ 0.61    2m stop loss       
+2026-02-13 16:00:00     4 GS     BULL  $   953.62 $   955.09 $    98.32 $ 2.00    2m floor take      
+2026-02-13 16:00:00     5 COST   BULL  $   977.86 $   974.27 $  -408.89 $ 2.12    2m stop loss       
+2026-02-13 16:00:00     6 CRM    BEAR  $   202.85 $   203.00 $   -25.64 $ 0.81    6m floor take      
+2026-02-13 16:00:00     7 JPM    BULL  $   315.37 $   315.99 $    45.23 $ 0.88   17m floor take      
+2026-02-13 16:00:00     8 HD     BULL  $   384.77 $   389.25 $   427.26 $ 1.10   26m profit take     
+2026-02-13 16:00:00     9 AVGO   BEAR  $   323.40 $   321.02 $   220.83 $ 1.53    3m profit take     
+2026-02-13 16:00:00    10 NVDA   BEAR  $   181.83 $   181.56 $    16.41 $ 0.69    4m floor take      
+2026-02-13 16:00:00    11 CRM    BEAR  $   201.02 $   199.51 $   140.10 $ 0.96   13m profit take     
+2026-02-13 16:00:00    12 AAPL   BULL  $   270.36 $   268.82 $  -168.59 $ 0.80   14m stop loss       
+2026-02-13 16:00:00    13 NVDA   BEAR  $   181.00 $   180.92 $    -2.05 $ 0.76    7m floor take      
+2026-02-13 16:00:00    14 JPM    BULL  $   316.11 $   314.56 $  -171.31 $ 0.98    9m stop loss       
+2026-02-13 16:00:00    15 MSFT   BEAR  $   414.21 $   412.11 $   188.79 $ 1.36   21m profit take     
+2026-02-13 16:00:00    16 CRM    BEAR  $   199.59 $   198.86 $    61.52 $ 1.05    6m floor take      
+2026-02-13 16:00:00    17 HD     BULL  $   389.27 $   390.13 $    65.54 $ 1.51    7m floor take      
+2026-02-13 16:00:00    18 AVGO   BEAR  $   319.44 $   316.53 $   274.03 $ 1.84    6m profit take     
+2026-02-13 16:00:00    19 HD     BULL  $   390.75 $   388.19 $  -276.04 $ 1.63    6m stop loss       
+2026-02-13 16:00:00    20 CRM    BEAR  $   198.40 $   197.88 $    40.58 $ 1.13    8m floor take      
+2026-02-13 16:00:00    21 AVGO   BEAR  $   316.89 $   315.60 $   112.53 $ 1.95    7m floor take      
+2026-02-13 16:00:00    22 COST   BULL  $   982.93 $   979.49 $  -394.58 $ 3.16   19m eod             
+2026-02-13 16:00:00    23 CRM    BEAR  $   197.78 $   198.28 $   -61.39 $ 1.15   19m eod             
+2026-02-13 16:00:00    24 AVGO   BEAR  $   318.25 $   316.16 $   191.59 $ 1.10    2m profit take     
+2026-02-13 16:00:00    25 COST   BULL  $   984.97 $   988.00 $   253.25 $ 1.85    2m profit take     
+2026-02-13 16:00:00    26 AAPL   BULL  $   275.57 $   277.01 $   128.72 $ 0.86    6m profit take     
+2026-02-13 16:00:00    27 CRM    BEAR  $   190.40 $   188.53 $   175.98 $ 0.89    6m profit take     
+2026-02-13 16:00:00    28 GS     BEAR  $   931.36 $   925.11 $   577.43 $ 2.43    2m profit take     
+2026-02-13 16:00:00    29 AAPL   BULL  $   277.64 $   278.29 $    50.13 $ 0.99    7m floor take      
+2026-02-13 16:00:00    30 CRM    BEAR  $   189.50 $   187.61 $   178.53 $ 1.04    8m profit take     
+2026-02-13 16:00:00    31 COST   BULL  $   993.67 $   989.87 $  -431.18 $ 2.46   11m stop loss       
+2026-02-13 16:00:00    32 GS     BEAR  $   918.41 $   912.49 $   545.08 $ 3.32    2m profit take     
+2026-02-13 16:00:00    33 GOOGL  BEAR  $   336.54 $   336.53 $   -17.33 $ 1.04    6m floor take      
+2026-02-13 16:00:00    34 CRM    BEAR  $   188.17 $   190.33 $  -226.41 $ 1.13    6m stop loss       
+2026-02-13 16:00:00    35 GOOGL  BEAR  $   335.82 $   333.75 $   189.21 $ 1.10   24m profit take     
+2026-02-13 16:00:00    36 GOOGL  BEAR  $   334.48 $   333.70 $    60.70 $ 1.35   19m eod             
+2026-02-13 16:00:00    37 AVGO   BEAR  $   308.65 $   314.50 $  -601.43 $ 2.17  301m stop loss       
+2026-02-13 16:00:00    38 V      BULL  $   334.56 $   332.77 $  -196.73 $ 1.06    5m stop loss       
+2026-02-13 16:00:00    39 AMZN   BEAR  $   224.66 $   224.01 $    52.27 $ 1.16   20m floor take      
+2026-02-13 16:00:00    40 GOOGL  BEAR  $   322.64 $   319.00 $   347.36 $ 2.43   24m profit take     
+2026-02-13 16:00:00    41 MSFT   BEAR  $   400.74 $   399.55 $    97.96 $ 1.85    8m floor take      
+2026-02-13 16:00:00    42 GS     BEAR  $   890.62 $   882.75 $   741.47 $ 4.31    4m profit take     
+2026-02-13 16:00:00    43 MSFT   BEAR  $   399.94 $   399.82 $    -9.50 $ 1.93    8m floor take      
+2026-02-13 16:00:00    44 GS     BEAR  $   880.79 $   877.99 $   235.46 $ 4.73   14m floor take      
+2026-02-13 16:00:00    45 JPM    BEAR  $   307.51 $   306.63 $    71.37 $ 1.31   16m floor take      
+2026-02-13 16:00:00    46 AVGO   BULL  $   326.30 $   323.11 $  -335.81 $ 2.07   14m stop loss       
+2026-02-13 16:00:00    47 AAPL   BULL  $   280.52 $   279.35 $  -133.03 $ 0.77   14m stop loss       
+2026-02-13 16:00:00    48 META   BEAR  $   647.86 $   651.62 $  -409.89 $ 2.47   10m stop loss       
+2026-02-13 16:00:00    49 GS     BULL  $   925.53 $   921.70 $  -430.28 $ 4.64   49m eod             
+2026-02-13 16:00:00    50 NVDA   BULL  $   182.65 $   182.65 $   -10.13 $ 1.26   29m eod             
+2026-02-13 16:00:00    51 JPM    BULL  $   322.70 $   324.04 $   116.86 $ 0.63    2m profit take     
+2026-02-13 16:00:00    52 NVDA   BULL  $   189.51 $   191.31 $   169.03 $ 1.07    6m profit take     
+2026-02-13 16:00:00    53 LLY    BULL  $  1091.22 $  1079.44 $ -1233.57 $ 5.78   10m stop loss       
+2026-02-13 16:00:00    54 AMZN   BEAR  $   205.95 $   205.51 $    32.20 $ 1.16   14m floor take      
+2026-02-13 16:00:00    55 NVDA   BULL  $   193.52 $   191.50 $  -212.68 $ 1.32    5m stop loss       
+2026-02-13 16:00:00    56 GS     BULL  $   941.00 $   942.73 $   124.95 $ 3.33   12m floor take      
+2026-02-13 16:00:00    57 JPM    BULL  $   326.04 $   326.04 $   -16.80 $ 0.94   19m eod             
+2026-02-13 16:00:00    58 GS     BULL  $   944.48 $   945.15 $    18.78 $ 3.36   19m eod             
+2026-02-13 16:00:00    59 JPM    BULL  $   326.40 $   324.02 $  -255.32 $ 0.89  300m stop loss       
+2026-02-13 16:00:00    60 CRM    BULL  $   194.56 $   191.29 $  -337.23 $ 0.99  300m stop loss       
+2026-02-13 16:00:00    61 V      BEAR  $   326.61 $   326.26 $    17.17 $ 1.07  302m floor take      
+2026-02-13 16:00:00    62 CRM    BULL  $   198.20 $   196.59 $  -172.41 $ 1.03   18m stop loss       
+2026-02-13 16:00:00    63 AMZN   BULL  $   212.12 $   210.57 $  -166.10 $ 0.95    4m stop loss       
+2026-02-13 16:00:00    64 CRM    BEAR  $   187.85 $   187.27 $    47.61 $ 0.92    3m floor take      
+2026-02-13 16:00:00    65 AMZN   BEAR  $   205.50 $   205.40 $    -0.85 $ 0.61   25m floor take      
+2026-02-13 16:00:00    66 CRM    BEAR  $   186.21 $   184.47 $   163.69 $ 1.03   10m profit take     
+2026-02-13 16:00:00    67 GOOGL  BEAR  $   313.42 $   311.62 $   163.33 $ 1.00    8m profit take     
+2026-02-13 16:00:00    68 AVGO   BEAR  $   335.58 $   334.96 $    43.92 $ 1.87    9m floor take      
+2026-02-13 16:00:00    69 GOOGL  BEAR  $   311.66 $   313.55 $  -205.58 $ 1.07   25m stop loss       
+2026-02-13 16:00:00    70 GS     BEAR  $   936.25 $   932.97 $   280.69 $ 4.73   12m floor take      
+2026-02-13 16:00:00    71 AAPL   BULL  $   278.38 $   279.67 $   113.66 $ 0.93   19m eod             
+2026-02-13 16:00:00    72 AAPL   BULL  $   279.75 $   274.30 $  -560.49 $ 0.96  300m stop loss       
+2026-02-13 16:00:00    73 UNH    BULL  $   283.20 $   281.33 $  -201.66 $ 1.21   18m stop loss       
+2026-02-13 16:00:00    74 AMZN   BEAR  $   200.72 $   199.34 $   126.46 $ 0.79    9m profit take     
+2026-02-13 16:00:00    75 JPM    BEAR  $   308.06 $   307.47 $    43.00 $ 1.07   16m floor take      
+2026-02-13 16:00:00    76 AAPL   BEAR  $   268.18 $   261.50 $   653.59 $ 1.13  300m profit take     
+2026-02-13 16:00:00    77 JPM    BEAR  $   306.64 $   297.09 $   938.92 $ 1.11  300m profit take     
+2026-02-13 16:00:00    78 CRM    BEAR  $   182.25 $   184.75 $  -260.11 $ 1.16  300m stop loss       
+2026-02-13 16:00:00    79 AMZN   BEAR  $   198.34 $   198.36 $   -13.43 $ 0.86  313m floor take      
+2026-02-13 16:00:00    80 GS     BEAR  $   874.05 $   871.06 $   254.30 $ 4.31    2m floor take      
+2026-02-13 16:00:00    81 CRM    BULL  $   188.50 $   188.44 $   -17.43 $ 0.66    2m floor take      
+2026-02-13 16:00:00    82 AAPL   BEAR  $   259.38 $   260.46 $  -121.78 $ 0.69   34m stop loss       
+2026-02-13 16:00:00    83 CRM    BULL  $   191.24 $   189.77 $  -157.56 $ 0.92    4m stop loss       
+2026-02-13 16:00:00    84 V      BEAR  $   320.34 $   317.14 $   302.98 $ 0.92   23m profit take     
+2026-02-13 16:00:00    85 COST   BULL  $  1012.55 $  1014.64 $   157.37 $ 3.21   13m floor take      
+2026-02-13 16:00:00    86 V      BEAR  $   317.10 $   315.14 $   178.15 $ 1.25   12m profit take     
+2026-02-13 16:00:00    87 COST   BULL  $  1016.30 $  1018.48 $   166.19 $ 3.26   11m floor take      
+Algorithm Id:(ShoulderTapsAlgorithm) completed in 2.89 seconds at 33k data points per second. Processing total of 94,951 data points.

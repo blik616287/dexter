@@ -1,72 +1,60 @@
-# DEXTER Real-Time Alert Monitor
+# Dipsea — DEXTER Real-Time Alert Monitor
 
-Real-time implementation of the DEXTER compressed-volatility breakout strategy. Streams live market data, evaluates a 5-gate signal on every completed 15-minute bar, and posts alerts to a configurable webhook endpoint.
+Real-time implementation of the DEXTER (Shoulder Tap 2) compressed-volatility breakout strategy. Runs on QuantConnect LEAN with second-resolution live data, evaluates a 5-gate signal on every price update, and posts alerts to a local warehouse via webhook.
 
 ## Strategy
 
-DEXTER identifies stocks in a clear trend, waits for a period of low-volatility consolidation, then triggers when price breaks out of a 10-bar range with above-average volume confirming the move. All 5 gates must pass on the same bar for a signal to fire.
+DEXTER identifies stocks in a clear trend, waits for a period of low-volatility consolidation, then triggers when price breaks out of a 10-bar range with above-average volume. All 5 gates must pass simultaneously for a signal to fire.
 
 | Gate | Condition | Purpose |
 |------|-----------|---------|
-| **1. MA Alignment** | SMA(20) > SMA(50) = BULL, SMA(20) < SMA(50) = BEAR | Establishes trend direction |
-| **2. Slope Agreement** | Both SMA(20) and SMA(50) slope in the same direction | Confirms momentum |
-| **3. ATR Compression** | ATR(14) / Close <= 0.008 | Identifies volatility squeeze before breakout |
-| **4. 10-Bar Breakout** | Close breaks above/below the 10-bar high/low channel | Price action confirmation |
+| **1. MA Alignment** | SMA(20) vs SMA(50) position | Establishes trend direction (BULL/BEAR) |
+| **2. Slope Agreement** | Both SMAs slope in the same direction | Confirms momentum |
+| **3. ATR Compression** | ATR(14) / Close <= 0.008 | Identifies volatility squeeze |
+| **4. 10-Bar Breakout** | Live price breaks the 10-bar high/low channel | Price action confirmation |
 | **5. RVOL (TOD)** | Time-of-day relative volume >= 1.2x | Volume validation against 60-day baseline |
 
+Gates 1-3 use indicators from the last completed 10-minute bar. Gates 4-5 use the live price and accumulating volume, evaluated on every second.
+
 Signal strength is scored 60-100 based on RVOL magnitude and MA slope agreement.
+
+### Latch / Invalidation
+
+When a signal fires, a latch engages to prevent duplicate alerts:
+
+- **Same bar**: latch suppresses re-trigger, checks for invalidation
+- **New bar**: latch does not suppress -- new signals can fire independently
+- **Invalidation**: if price falls back inside the channel, an exit alert is posted with the original `entry_timestamp`
+- **TTL**: latch silently expires after 10 minutes if not invalidated
 
 ## Architecture
 
 ```mermaid
 graph TB
-    subgraph Data Sources
-        YF[yfinance<br/>60d 15m bars]
-        FH[Finnhub Websocket<br/>real-time trades]
+    subgraph QuantConnect LEAN
+        DATA[Live Second Data<br/>15 symbols]
+        CONS[10m Bar Consolidator<br/>SMA 20/50, ATR 14]
+        EVAL[DEXTER Evaluator<br/>5-Gate on every tick]
+        LATCH[Latch + Invalidation]
+        AM[AlertManager<br/>webhook POST]
     end
 
-    subgraph Docker Container per Symbol
-        SEED[Seed History<br/>+ TOD Baseline]
-        AGG[Bar Aggregator<br/>15m OHLCV]
-        IND[Indicator Engine<br/>SMA 20/50, ATR 14]
-        EVAL[Dexter Evaluator<br/>5-Gate Signal]
-        REFRESH[Daily Refresh<br/>09:30 ET]
+    subgraph Local
+        WH[Warehouse<br/>SQLite + REST API<br/>port 8080]
+        CLI[CLI<br/>make alerts / stats / logs]
     end
 
-    subgraph Alert Destination
-        WH_LOCAL[Local Warehouse<br/>SQLite + REST API]
-        WH_EXT[External Webhook<br/>e.g. PythonAnywhere]
-    end
-
-    YF --> SEED
-    SEED --> IND
-    FH -->|trade ticks| AGG
-    AGG -->|completed bar| IND
-    IND --> EVAL
-    EVAL -->|signal fired| WH_LOCAL
-    EVAL -->|signal fired| WH_EXT
-    REFRESH -->|daily| SEED
+    DATA --> EVAL
+    DATA --> CONS
+    CONS -->|completed bar| EVAL
+    EVAL --> LATCH
+    LATCH -->|entry / exit| AM
+    AM -->|POST /alerts| WH
+    CLI -->|GET| WH
 
     style EVAL fill:#e74c3c,color:#fff
-    style AGG fill:#3498db,color:#fff
-    style WH_LOCAL fill:#2ecc71,color:#fff
-    style WH_EXT fill:#2ecc71,color:#fff
-```
-
-```mermaid
-graph LR
-    subgraph stack [Docker Compose Stack]
-        W[Warehouse Container<br/>port 8080]
-        M1[Monitor AAPL]
-        M2[Monitor MSFT]
-        M3[Monitor NVDA]
-    end
-
-    M1 -->|POST /alerts| W
-    M2 -->|POST /alerts| W
-    M3 -->|POST /alerts| W
-
-    Q[make alerts<br/>make stats] -->|GET| W
+    style LATCH fill:#e67e22,color:#fff
+    style WH fill:#2ecc71,color:#fff
 ```
 
 ## Quickstart
@@ -75,17 +63,35 @@ graph LR
 
 - Docker and Docker Compose
 - GNU Make
-- (Optional) Python 3.13+ for running tests locally
+- Python 3.13+
+- QuantConnect account with developer subscription
+- LEAN CLI (`pip install lean`) authenticated (`lean login`)
 
-### 1. Run with local warehouse
+### 1. Start the warehouse
 
 ```bash
-make up SYMBOLS="AAPL MSFT NVDA"
+make warehouse
 ```
 
-This starts one monitor container per symbol plus a local SQLite-backed warehouse on port 8080. Monitors seed with 60 days of history, then stream live trades during market hours.
+Starts the SQLite-backed alert warehouse on port 8080.
 
-### 2. Query alerts
+### 2. Deploy LEAN live (cloud)
+
+```bash
+make live
+```
+
+Pushes the strategy to QuantConnect and deploys on your L-MICRO node with paper trading. Evaluates all 15 symbols at second resolution.
+
+### 3. Or run LEAN locally
+
+```bash
+make local
+```
+
+Runs the same LEAN algorithm locally via Docker.
+
+### 4. Query alerts
 
 ```bash
 make alerts              # all stored alerts
@@ -93,50 +99,40 @@ make alerts-aapl         # filter by symbol
 make stats               # per-symbol aggregate stats
 make latest              # most recent alert per symbol
 make health              # warehouse health check
+make logs                # pull live algorithm logs from QC
 ```
 
-### 3. Run with external webhook
+### 5. Manage deployment
 
 ```bash
-make up \
-  SYMBOLS="AAPL MSFT NVDA GOOGL META" \
-  WEBHOOK_URL="https://alerts-grantsea.pythonanywhere.com/api/alert" \
-  WEBHOOK_API_KEY="your-api-key"
+make status              # cloud deployment status
+make stop                # stop cloud live (keep positions)
+make liquidate           # stop + close all positions
+make backtest            # run cloud backtest
+make local-backtest      # run local backtest
+make push                # push code to QC without deploying
 ```
 
-No local warehouse is started. Monitors post directly to the external endpoint with `X-API-Key` auth.
-
-### 4. Manage monitors
+### 6. Tear down
 
 ```bash
-make add SYMBOLS="GOOGL META"    # add to running stack
-make remove SYMBOLS="META"       # remove specific monitor
-make restart SYMBOLS="AAPL"      # restart a monitor
-make logs                        # tail all logs
-make logs-aapl                   # tail one monitor
-make status                      # show containers
+make down                # stop warehouse
+make nuke                # stop warehouse + delete stored data
+make clean               # remove Python build artifacts
 ```
 
-### 5. Tear down
-
-```bash
-make down       # stop all containers
-make nuke       # stop + delete stored data
-make clean      # remove Python build artifacts
-```
-
-### 6. Development
+### 7. Development
 
 ```bash
 pip install -r python/requirements-dev.txt
-make test       # 100 tests with coverage
-make lint       # ruff linter
-make lint-fix   # auto-fix lint issues
+make test                # run tests
+make lint                # ruff linter
+make lint-fix            # auto-fix lint issues
 ```
 
 ## Alert Payload
 
-When a signal fires, the monitor POSTs this JSON to the webhook:
+When a signal fires, LEAN POSTs this JSON to the warehouse:
 
 ```json
 {
@@ -146,7 +142,26 @@ When a signal fires, the monitor POSTs this JSON to the webhook:
   "alert_type": "DEXTER",
   "entry_exit": "entry",
   "side": "buy",
-  "bar_size": "15m"
+  "bar_size": "10m",
+  "strength": 72,
+  "source": "lean-cloud"
+}
+```
+
+Exit (invalidation) alerts include the original entry timestamp:
+
+```json
+{
+  "timestamp": "2026-03-31T14:52:30",
+  "symbol": "AAPL",
+  "price": 252.10,
+  "alert_type": "DEXTER",
+  "entry_exit": "exit",
+  "side": "",
+  "bar_size": "10m",
+  "strength": 0,
+  "source": "lean-cloud",
+  "entry_timestamp": "2026-03-31T14:45:00"
 }
 ```
 
@@ -154,22 +169,29 @@ When a signal fires, the monitor POSTs this JSON to the webhook:
 
 ```
 dexter/
-├── python/
-│   ├── dexter_alert.py          # DEXTER evaluator + monitor
-│   ├── stock_stream.py          # Historical bars + trade streaming
+├── lean/                        # QuantConnect LEAN strategy
+│   └── ShoulderTaps/
+│       ├── main.py              # Algorithm entry point (Resolution.Second)
+│       ├── config.json          # Parameters + webhook config
+│       ├── alpha/               # Signal evaluators
+│       │   ├── dexter.py        # DEXTER 5-gate + latch/invalidation
+│       │   ├── bt_divergence.py # Stochastic divergence (Tap 1)
+│       │   ├── ensemble_a.py    # 7-gate momentum confluence (Tap 3)
+│       │   ├── ensemble_b.py    # SPY scalp (Tap 4)
+│       │   ├── ensemble_c.py    # Dual-TF reversal (Tap 5)
+│       │   ├── utils.py         # Shared indicator utilities
+│       │   └── proxies.py       # Market sentiment approximations
+│       ├── execution/           # Order execution model
+│       ├── notifications/       # AlertManager -> warehouse webhook
+│       └── tracking/            # Trade metrics + forward returns
+├── python/                      # Warehouse + utilities
 │   ├── alert_warehouse.py       # Alert storage HTTP server
-│   ├── requirements.txt         # Pinned runtime dependencies
-│   └── requirements-dev.txt     # + test/lint dependencies
+│   ├── qc_logs.py               # Pull live logs from QC API
+│   └── requirements-dev.txt
 ├── docker/
-│   ├── docker-compose.yml       # Warehouse service
-│   ├── docker-compose.override.yml  # Generated monitor services
-│   ├── Dockerfile.monitor
+│   ├── docker-compose.yml       # Warehouse container
 │   └── Dockerfile.warehouse
 ├── tests/
-│   ├── conftest.py
-│   ├── test_dexter_alert.py
-│   ├── test_alert_warehouse.py
-│   └── test_stock_stream.py
 ├── Makefile
 └── .gitignore
 ```
