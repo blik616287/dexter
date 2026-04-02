@@ -60,6 +60,11 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
     # Initialize
     # ------------------------------------------------------------------ #
     def Initialize(self):
+        # --- Test email notification (remove after confirming) ---
+        email = self.GetParameter("alert_email")
+        if email and self.LiveMode:
+            self.Notify.Email(email, "ShoulderTaps: Test Alert", "Email alerting is working.")
+
         # --- Backtest window (configurable via parameters) ---
         start_year = int(self.GetParameter("start_year") or 2024)
         start_month = int(self.GetParameter("start_month") or 1)

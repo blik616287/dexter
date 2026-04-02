@@ -11,7 +11,7 @@
         "trading_mode": "equity",
         "webhook_url": "",
         "webhook_api_key": "",
-        "alert_email": ""
+        "alert_email": "mforde84@gmail.com"
     },
     "description": "Shoulder Taps trading algorithm with DEXTER breakout model",
     "cloud-id": 28278775,
