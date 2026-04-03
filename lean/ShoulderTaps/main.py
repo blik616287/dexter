@@ -102,7 +102,8 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
         self._sector_pct_change = {}  # sector_ticker -> pct_change
         self._sector_day_open = {}    # sector_ticker -> day's open price
 
-        # --- Core equities (Resolution.Minute for 1m raw bars) ---
+        # --- Core equities (Resolution.Second for live price updates) ---
+        self.TICK_SYMBOLS = set()  # None — Second resolution for all
         self._equity_handles = {}
         for ticker in self.CORE_SYMBOLS:
             equity = self.AddEquity(ticker, Resolution.Second)
@@ -177,7 +178,11 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
     # Consolidator + Indicator Setup
     # ------------------------------------------------------------------ #
     def _setup_consolidator(self, symbol, ticker, tf_label, minutes):
-        """Create a TradeBarConsolidator and register 12 indicators."""
+        """Create a consolidator and register 12 indicators.
+
+        Uses TickConsolidator for tick-resolution symbols,
+        TradeBarConsolidator for second/minute resolution.
+        """
         consolidator = TradeBarConsolidator(timedelta(minutes=minutes))
         consolidator.DataConsolidated += (
             lambda sender, bar, t=ticker, tf=tf_label:

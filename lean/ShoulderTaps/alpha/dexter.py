@@ -118,42 +118,47 @@ class DexterAlpha(BaseShoulderTapAlpha):
             if not candles:
                 continue
 
-            # --- Check active latch: invalidation, expiry, or same-bar suppress ---
+            # --- Check active latch ---
             latch = self._latches.get(ticker)
             if latch is not None:
-                if latch.is_invalidated(current_price):
-                    entry_ts = latch.entry_timestamp
-                    del self._latches[ticker]
-
-                    algorithm.Debug(
-                        f"[dexter] INVALIDATED {ticker} at ${current_price:.2f} "
-                        f"(entry was {entry_ts})"
-                    )
-                    if hasattr(algorithm, '_alert_manager') and algorithm._alert_manager:
-                        algorithm._alert_manager.fire_alert(
-                            model_name="dexter",
-                            symbol=ticker,
-                            direction="INVALIDATED",
-                            strength=0,
-                            trigger_values={
-                                "action_type": "EXIT",
-                                "close": current_price,
-                                "entry_timestamp": str(entry_ts),
-                            },
-                            context_values={
-                                "channel_high": latch.channel_high,
-                                "channel_low": latch.channel_low,
-                                "original_direction": latch.direction,
-                            },
-                        )
-                    continue
-
                 if latch.is_expired(current_time):
+                    # TTL exceeded — silently release
                     del self._latches[ticker]
                 elif latch.bar_time == bar_start:
-                    # Same 10m bar as the latch — suppress
+                    # Same bar as the latch — suppress re-trigger
                     continue
-                # Different bar, not expired, not invalidated → allow eval
+                else:
+                    # Different bar — check if the LAST COMPLETED BAR closed
+                    # back inside the channel (invalidation on bar close only)
+                    last_close = float(candles[-1].get("close", 0))
+                    if latch.is_invalidated(last_close):
+                        entry_ts = latch.entry_timestamp
+                        del self._latches[ticker]
+
+                        algorithm.Debug(
+                            f"[dexter] INVALIDATED {ticker} — bar closed "
+                            f"at ${last_close:.2f} inside channel "
+                            f"(entry was {entry_ts})"
+                        )
+                        if hasattr(algorithm, '_alert_manager') and algorithm._alert_manager:
+                            algorithm._alert_manager.fire_alert(
+                                model_name="dexter",
+                                symbol=ticker,
+                                direction="INVALIDATED",
+                                strength=0,
+                                trigger_values={
+                                    "action_type": "EXIT",
+                                    "close": last_close,
+                                    "entry_timestamp": str(entry_ts),
+                                },
+                                context_values={
+                                    "channel_high": latch.channel_high,
+                                    "channel_low": latch.channel_low,
+                                    "original_direction": latch.direction,
+                                },
+                            )
+                        continue
+                    # Bar closed outside channel — latch holds, allow new eval
 
             # --- Evaluate 5 gates using live price + completed bar indicators ---
             result = self._evaluate_live(
@@ -350,10 +355,8 @@ class DexterAlpha(BaseShoulderTapAlpha):
         """Track accumulating volume within the current 10m bar."""
         entry = self._live_volume.get(ticker)
         if entry is None or entry["bar_start"] != bar_start:
-            # New bar — reset
             self._live_volume[ticker] = {"bar_start": bar_start, "volume": 0}
 
-        # Add this minute's volume if available
         if data.ContainsKey(symbol) and data[symbol] is not None:
             bar = data[symbol]
             if hasattr(bar, 'Volume'):
