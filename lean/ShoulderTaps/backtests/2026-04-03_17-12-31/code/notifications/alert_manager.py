@@ -26,30 +26,19 @@ class AlertManager:
         trigger_values = trigger_values or {}
         context_values = context_values or {}
 
-        # Determine entry vs exit vs tap
+        # Determine entry vs exit
         action_type = trigger_values.get("action_type", "")
         is_exit = direction == "INVALIDATED" or action_type == "EXIT"
-        is_tap = direction.startswith("TAP_")
 
-        if is_exit:
-            entry_exit = "exit"
-            side = ""
-        elif is_tap:
-            entry_exit = "tap"
-            side = "buy" if "BULL" in direction else "sell"
-        else:
-            entry_exit = "entry"
-            side = "buy" if action_type == "BUY" else "sell" if action_type == "SELL" else ""
-
-        # Build payload
+        # Build warehouse-compatible payload
         payload = {
             "timestamp": str(self._algorithm.Time),
             "symbol": str(symbol),
             "price": trigger_values.get("close", 0),
             "alert_type": model_name.upper(),
-            "entry_exit": entry_exit,
-            "side": side,
-            "bar_size": "15m",
+            "entry_exit": "exit" if is_exit else "entry",
+            "side": action_type.lower() if action_type and not is_exit else "",
+            "bar_size": "10m",
             "strength": strength,
             "source": "lean-cloud",
         }
@@ -97,23 +86,6 @@ class AlertManager:
                 )
             except Exception as e:
                 self._algorithm.Debug(f"[ALERT] Email failed: {e}")
-
-        # SMS notification
-        sms_number = self._algorithm.GetParameter("alert_sms")
-        if sms_number:
-            try:
-                msg = (
-                    f"{payload['timestamp']} "
-                    f"{payload['symbol']} "
-                    f"${payload.get('price', 0):.2f} "
-                    f"{payload['alert_type']} "
-                    f"{payload['entry_exit']} "
-                    f"{payload['side']} "
-                    f"{payload['bar_size']}"
-                )
-                self._algorithm.Notify.Sms(sms_number, msg)
-            except Exception as e:
-                self._algorithm.Debug(f"[ALERT] SMS failed: {e}")
 
     def persist(self):
         """Save alert history to ObjectStore."""

@@ -70,10 +70,12 @@ class DexterAlpha(BaseShoulderTapAlpha):
             lookback=60,
             cooldown_minutes=0,
             symbols=[
-                "AAPL", "AMZN", "C", "GDX", "GLD",
-                "IBIT", "JPM", "MAGS", "META", "MSFT",
-                "NVDA", "QQQ", "SOXL", "SPY", "TLT",
-                "TSLA",
+                "AAPL", "MSFT", "GOOGL", "AMZN", "META",
+                "NVDA", "AVGO",
+                "JPM", "V", "GS",
+                "UNH", "LLY",
+                "COST", "HD",
+                "CRM",
             ],
         )
         self._latches = {}
@@ -183,9 +185,6 @@ class DexterAlpha(BaseShoulderTapAlpha):
                 del self._pending_taps[ticker]
 
                 if confirmed:
-                    # Update price to bar close (not the tap-time price)
-                    result["trigger_values"]["close"] = last_close
-
                     # Engage latch
                     self._latches[ticker] = _BreakoutLatch(
                         bar_time=pending["bar_start"],
@@ -363,17 +362,60 @@ class DexterAlpha(BaseShoulderTapAlpha):
         if rvol is None or rvol < _RVOL_MINIMUM:
             return None
 
+        # ==============================================================
+        # QUALITY FILTERS — reject low-quality breakouts
+        # ==============================================================
         ch_high = max(channel_highs)
         ch_low = min(channel_lows)
         channel_height = ch_high - ch_low
 
+        # Q1: MA separation — MAs should be meaningfully apart, not just
+        # barely crossed. Thin separation = weak trend = unreliable breakout.
+        ma_separation_pct = abs(sma_20 - sma_50) / sma_50 * 100 if sma_50 > 0 else 0
+        if ma_separation_pct < 0.05:
+            return None
+
+        # Q2: Compression quality — the channel should be genuinely tight
+        # relative to price. A wide channel that happens to have low ATR
+        # isn't real compression. Channel height should be < 1.5% of price.
+        channel_pct = channel_height / live_close * 100 if live_close > 0 else 0
+        if channel_pct > 1.5:
+            return None
+
+        # Q3: Breakout conviction — the breakout shouldn't be marginal.
+        # Price should clear the channel by at least 20% of the channel height.
+        # Barely-over breakouts reverse too easily.
+        if direction == "BULL":
+            clearance = live_close - ch_high
+        else:
+            clearance = ch_low - live_close
+        clearance_pct = clearance / channel_height if channel_height > 0 else 0
+        if clearance_pct < 0.10:
+            return None
+
+        # Q4: Bars in compression — the consolidation should have lasted
+        # at least 4 bars. A brief 2-3 bar range isn't real compression.
+        bars_inside = sum(
+            1 for c in channel_candles
+            if c.get("high") is not None and c.get("low") is not None
+            and float(c["high"]) <= ch_high * 1.002
+            and float(c["low"]) >= ch_low * 0.998
+        )
+        if bars_inside < 4:
+            return None
+
         # ==============================================================
-        # Strength scoring (no quality filters — pure 5-gate signal)
+        # Strength scoring
         # ==============================================================
         strength = 60.0
         rvol_bonus = min(20.0, (rvol - _RVOL_MINIMUM) * 50)
         strength += max(0.0, rvol_bonus)
         if abs(slope_20) > _MA_STRONG_SLOPE_PCT and abs(slope_50) > _MA_STRONG_SLOPE_PCT:
+            strength += 5
+        # Quality bonuses
+        if ma_separation_pct > 0.2:
+            strength += 5
+        if clearance_pct > 0.5:
             strength += 5
         if rvol >= 2.0:
             strength += 5
@@ -387,7 +429,8 @@ class DexterAlpha(BaseShoulderTapAlpha):
             "strength": strength,
             "notes": (
                 f"{direction} DEXTER breakout, "
-                f"ATR ratio={atr_ratio:.5f}, RVOL={rvol:.2f}"
+                f"ATR ratio={atr_ratio:.5f}, RVOL={rvol:.2f}, "
+                f"clearance={clearance_pct:.0%}, compression={bars_inside}/10"
             ),
             "trigger_values": {
                 "action_type": action_type,
@@ -403,6 +446,10 @@ class DexterAlpha(BaseShoulderTapAlpha):
                 "atr_14": atr_14,
                 "channel_high": ch_high,
                 "channel_low": ch_low,
+                "ma_separation_pct": round(ma_separation_pct, 4),
+                "clearance_pct": round(clearance_pct, 4),
+                "channel_pct": round(channel_pct, 4),
+                "bars_inside": bars_inside,
             },
         }
 

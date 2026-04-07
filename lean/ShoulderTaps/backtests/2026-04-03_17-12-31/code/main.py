@@ -29,10 +29,12 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
 
     # --- Configuration ---
     CORE_SYMBOLS = [
-        "AAPL", "AMZN", "C", "GDX", "GLD",
-        "IBIT", "JPM", "MAGS", "META", "MSFT",
-        "NVDA", "QQQ", "SOXL", "SPY", "TLT",
-        "TSLA",
+        "AAPL", "MSFT", "GOOGL", "AMZN", "META",
+        "NVDA", "AVGO",
+        "JPM", "V", "GS",
+        "UNH", "LLY",
+        "COST", "HD",
+        "CRM",
     ]
     SECTOR_ETFS = ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY",
                    "XLP", "XLU", "XLB", "XLRE", "XLC"]
@@ -58,10 +60,10 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
     # Initialize
     # ------------------------------------------------------------------ #
     def Initialize(self):
-        # --- Startup marker (visible in API RuntimeStatistics) ---
-        if self.LiveMode:
-            self.SetRuntimeStatistic("init", "ok")
-            self.Notify.Sms("8477571204", f"ShoulderTaps live started at {self.Time}")
+        # --- Test email notification (remove after confirming) ---
+        email = self.GetParameter("alert_email")
+        if email and self.LiveMode:
+            self.Notify.Email(email, "ShoulderTaps: Test Alert", "Email alerting is working.")
 
         # --- Backtest window (configurable via parameters) ---
         start_year = int(self.GetParameter("start_year") or 2024)
@@ -79,10 +81,8 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
         sl = self.GetParameter("atr_sl")
         if sl: self.ATR_STOP_MULTIPLIER = float(sl)
 
-        start_day = int(self.GetParameter("start_day") or 1)
-        end_day = int(self.GetParameter("end_day") or 1)
-        self.SetStartDate(start_year, start_month, start_day)
-        self.SetEndDate(end_year, end_month, end_day)
+        self.SetStartDate(start_year, start_month, 1)
+        self.SetEndDate(end_year, end_month, 1)
         self.SetCash(cash)
         self.SetTimeZone("America/New_York")
 
@@ -102,14 +102,11 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
         self._sector_pct_change = {}  # sector_ticker -> pct_change
         self._sector_day_open = {}    # sector_ticker -> day's open price
 
-        # --- Core equities (Resolution.Minute) ---
-        # 15m bar strategy with bar-close confirmation — minute resolution
-        # gives OnData once per minute for exit checks and live price via
-        # Securities[symbol].Price. Warm-up completes quickly.
-        self.TICK_SYMBOLS = set()
+        # --- Core equities (Resolution.Second for live price updates) ---
+        self.TICK_SYMBOLS = set()  # None — Second resolution for all
         self._equity_handles = {}
         for ticker in self.CORE_SYMBOLS:
-            equity = self.AddEquity(ticker, Resolution.Minute)
+            equity = self.AddEquity(ticker, Resolution.Second)
             equity.SetDataNormalizationMode(DataNormalizationMode.Raw)
             self._equity_handles[ticker] = equity.Symbol
 
@@ -480,27 +477,7 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
         # Record signal in metrics tracker
         self._metrics.record_signal(model, symbol, direction, strength, self.Time)
 
-        # Log signal only — no trade execution
-        ticker_str = str(symbol).split(" ")[0] if " " in str(symbol) else str(symbol)
-        for t, handle in self._equity_handles.items():
-            if handle == symbol:
-                ticker_str = t
-                break
-        price = self.Securities[symbol].Price
-        self.Debug(f"[SIGNAL] {ticker_str} {direction} @ ${price:.2f} strength={strength:.0f} model={model} time={self.Time}")
-
-        # Count signals in RuntimeStatistics (visible in API)
-        if not hasattr(self, '_signal_counts'):
-            self._signal_counts = {"total": 0, "bull": 0, "bear": 0}
-        self._signal_counts["total"] += 1
-        self._signal_counts["bull" if direction == "BULL" else "bear"] += 1
-        self.SetRuntimeStatistic("signals", str(self._signal_counts["total"]))
-        self.SetRuntimeStatistic("bull_signals", str(self._signal_counts["bull"]))
-        self.SetRuntimeStatistic("bear_signals", str(self._signal_counts["bear"]))
-        self.SetRuntimeStatistic(f"last_signal", f"{ticker_str} {direction} ${price:.2f}")
-        return
-
-        # Execute trade (disabled — alert-only mode)
+        # Execute trade
         if self._trading_mode == "equity":
             # Skip if already in a position for this symbol
             if symbol in self._equity_entries:
@@ -664,8 +641,8 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
                         entry_info["_bars_held"] = bars_held
                         last_close = float(window[-1].get("close", 0))
 
-                        # Invalidation: bar closed inside channel (5-bar grace)
-                        if bars_held >= 5 and ch_high is not None and ch_low is not None:
+                        # Invalidation: bar closed inside channel (3-bar grace)
+                        if bars_held >= 3 and ch_high is not None and ch_low is not None:
                             if direction == "BULL" and last_close <= ch_high:
                                 exit_reason = "invalidation"
                             elif direction == "BEAR" and last_close >= ch_low:
@@ -702,18 +679,17 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
                                     elif direction == "BEAR" and current_slope > 0 and entry_slope < 0:
                                         exit_reason = "momentum_stall"
 
-                        # Volume follow-through: the bar immediately after entry
-                        # must not have volume collapse. If it drops to half of
-                        # average, institutions aren't behind this breakout.
-                        if exit_reason is None and bars_held == 1:
-                            curr_vol = float(window[-1].get("volume", 0))
-                            if len(window) >= 21:
-                                avg_vol = sum(
-                                    float(c["volume"]) for c in window[-21:-1]
-                                    if c.get("volume") is not None
-                                ) / 20
-                                if avg_vol > 0 and curr_vol < avg_vol * 0.5:
-                                    exit_reason = "volume_dropout"
+                        # Volume reversal: retracement toward channel + volume surge
+                        if exit_reason is None and ch_high is not None and ch_low is not None:
+                            channel_height = ch_high - ch_low
+                            if channel_height > 0:
+                                dist = ((last_close - ch_high) / channel_height if direction == "BULL"
+                                        else (ch_low - last_close) / channel_height)
+                                if dist < 0.25 and len(window) >= 3:
+                                    v_prev = float(window[-2].get("volume", 0))
+                                    v_curr = float(window[-1].get("volume", 0))
+                                    if v_prev > 0 and v_curr > v_prev * 1.5:
+                                        exit_reason = "volume_reversal"
 
             # ==============================================================
             # Execute exit
@@ -741,13 +717,6 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
                 for alpha in self._alpha_models:
                     if hasattr(alpha, 'clear_channel'):
                         alpha.clear_channel(ticker_str)
-
-                # Track exit counts as RuntimeStatistics (visible in API)
-                key = f"x_{exit_reason}"
-                if not hasattr(self, '_exit_counts'):
-                    self._exit_counts = {}
-                self._exit_counts[key] = self._exit_counts.get(key, 0) + 1
-                self.SetRuntimeStatistic(key, str(self._exit_counts[key]))
 
                 self.Debug(
                     f"[{exit_reason.upper()}] {ticker_str} {direction} "
@@ -899,18 +868,6 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
 
     def _persist_results(self):
         """Persist all results at end of backtest."""
-        # Quick exit summary — write to multiple channels for visibility
-        exit_stats = self._metrics.compute_per_exit_type()
-        parts = [f"{r}={exit_stats[r]['count']}" for r in sorted(exit_stats.keys())]
-        summary_line = f"EXIT_SUMMARY: {' | '.join(parts) if parts else 'no trades'}"
-        self.Log(summary_line)
-        self.Debug(summary_line)
-        # Also write to ObjectStore so we can read it via API
-        try:
-            self.ObjectStore.Save("shoulder_taps/exit_summary", summary_line)
-        except Exception:
-            pass
-
         # Alert history
         self._alert_manager.persist()
 
@@ -995,7 +952,7 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
         exit_order = [
             "hard_stop", "measured_move", "profit_lockin",
             "invalidation", "trail_stop", "momentum_stall",
-            "volume_dropout", "eod",
+            "volume_reversal", "eod",
         ]
         exit_labels = {
             "hard_stop":       "Hard Stop  ",
@@ -1004,7 +961,7 @@ class ShoulderTapsAlgorithm(QCAlgorithm):
             "invalidation":    "Invalidate ",
             "trail_stop":      "Trail Stop ",
             "momentum_stall":  "Mom. Stall ",
-            "volume_dropout":  "Vol Dropout",
+            "volume_reversal": "Vol Reversal",
             "eod":             "EOD Close  ",
         }
         self.Debug(f"  {'Type':<14} {'Trips':>5} {'WR':>6} {'P&L':>10} {'Avg P&L':>10} {'Avg Hold':>10}")

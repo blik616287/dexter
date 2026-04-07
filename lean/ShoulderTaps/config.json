@@ -4,16 +4,23 @@
     "algorithm-location": "main.py",
     "parameters": {
         "start_year": "2026",
-        "start_month": "2",
+        "start_month": "3",
+        "start_day": "20",
         "end_year": "2026",
-        "end_month": "3",
+        "end_month": "4",
+        "end_day": "4",
         "cash": "500000",
         "trading_mode": "equity",
-        "webhook_url": "",
-        "webhook_api_key": "",
-        "alert_email": "mforde84@gmail.com"
+        "webhook_url": "https://alerts-grantsea.pythonanywhere.com/api/alert",
+        "webhook_api_key": "6fd7fa3c95c9296eb3fc376eea08146e",
+        "alert_email": "",
+        "alert_sms": "8477571204",
+        "atr_pt": "1.5",
+        "atr_floor": "0.75",
+        "atr_sl": "1.5"
     },
     "description": "Shoulder Taps trading algorithm with DEXTER breakout model",
     "cloud-id": 28278775,
-    "organization-id": "58ef8e576e9b4d9b3a9982fbbc2aee1b"
+    "organization-id": "58ef8e576e9b4d9b3a9982fbbc2aee1b",
+    "local-id": 862635458
 }

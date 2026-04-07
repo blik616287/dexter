@@ -1,0 +1,40 @@
+Launching analysis for 1977270930 with LEAN Engine v2.5.0.0
+2026-02-01 00:00:00 [INIT] ShoulderTaps initialized | mode=equity | symbols=['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'AVGO', 'JPM', 'V', 'GS', 'UNH', 'LLY', 'COST', 'HD', 'CRM']
+2026-01-22 00:00:00 Algorithm starting warm up...
+2026-01-22 00:00:00 ================================================================================
+2026-01-22 00:00:00 SHOULDER TAPS BACKTEST COMPLETE
+2026-01-22 00:00:00 ================================================================================
+2026-01-22 00:00:00 --- OVERALL STATS ---
+2026-01-22 00:00:00   Signals:          0
+2026-01-22 00:00:00   Completed Trips:  0
+2026-01-22 00:00:00   Win Rate:         0%
+2026-01-22 00:00:00   Total P&L:        $0.00
+2026-01-22 00:00:00   Avg P&L/Trade:    $0.00
+2026-01-22 00:00:00   Avg Win:          $0.00
+2026-01-22 00:00:00   Avg Loss:         $0.00
+2026-01-22 00:00:00   Largest Win:      $0.00
+2026-01-22 00:00:00   Largest Loss:     $0.00
+2026-01-22 00:00:00   Profit Factor:    N/A
+2026-01-22 00:00:00   Payoff Ratio:     N/A
+2026-01-22 00:00:00   Expectancy:       $0.00
+2026-01-22 00:00:00   Sharpe:           N/A
+2026-01-22 00:00:00   Sortino:          N/A
+2026-01-22 00:00:00   Max Drawdown:     $0.00
+2026-01-22 00:00:00   Max Win Streak:   0
+2026-01-22 00:00:00   Max Loss Streak:  0
+2026-01-22 00:00:00   Avg Hold Time:    0 min
+2026-01-22 00:00:00   Min Hold Time:    0 min
+2026-01-22 00:00:00   Max Hold Time:    0 min
+2026-01-22 00:00:00   Alerts Fired:     0
+2026-01-22 00:00:00   Forward Returns:  0 completed, 0 pending
+2026-01-22 00:00:00 --- PER-MODEL ---
+2026-01-22 00:00:00 --- EXIT TYPE BREAKDOWN ---
+2026-01-22 00:00:00   Type           Trips     WR        P&L    Avg P&L   Avg Hold
+2026-01-22 00:00:00   -------------- ----- ------ ---------- ---------- ----------
+2026-01-22 00:00:00 --- PER-SYMBOL PERFORMANCE (sorted by P&L) ---
+2026-01-22 00:00:00   Ticker Trips     WR        P&L   AvgP&L   AvgWin  AvgLoss     Best    Worst   Hold  PT  FL  SL  TS EOD  Bull  Bear
+2026-01-22 00:00:00   ------ ----- ------ ---------- -------- -------- -------- -------- -------- ------ --- --- --- --- --- ----- -----
+2026-01-22 00:00:00 --- TRADE LOG ---
+2026-01-22 00:00:00     # Ticker Dir        Entry       Exit        P&L    ATR   Hold Exit Type       
+2026-01-22 00:00:00   --- ------ ----- ---------- ---------- ---------- ------ ------ ----------------
+Algorithm Id:(1977270930) completed in 0.22 seconds at 0k data points per second. Processing total of 1 data points.
