@@ -195,3 +195,7 @@ dexter/
 ├── Makefile
 └── .gitignore
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Martin Forde <mforde84@gmail.com>, [Blik Labs](https://bliklabs.com).
